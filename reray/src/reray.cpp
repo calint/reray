@@ -647,10 +647,10 @@ public:
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
 
-	glob&pos(const p3&coord,const p3&agl){set(coord);a.set(agl);return*this;}
+	glob&pos(const p3&coord,const p3&agl){np.set(coord);a.set(agl);return*this;}
 	glob&setvbo(vbo&v){vb=&v;return*this;}
 	const m3&getmxmw(){refreshmxmw();return mxmw;}
-	glob&dpos(const p3&coord,const p3&agl){d.set(coord);da.set(agl);return*this;}
+	glob&dpos(const p3&dpdt,const p3&dadt){nd.set(dpdt);da.set(dadt);return*this;}
 
 	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
 		p3(p),id(metrics::globs++),g(g),a(a),bits(1),rmed(false),
@@ -884,7 +884,7 @@ protected:
 
 		mxmw=g.mxmw;
 		const m3 m(mxmwpos,mxmwagl);
-		mxmw.mul(m);//? ifidentskip
+		mxmw.mul(m);//? ifmxmwidentskip
 
 		return true;
 	}
@@ -1033,6 +1033,8 @@ class mtxstk{
 //	const m3&pop(){return 0;}
 };
 
+static glob wld(*(glob*)0);
+
 int main(){
 	if(!glfwInit())return -1;
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
@@ -1050,11 +1052,16 @@ int main(){
 	vbo vb;
 	vb.glload();
 
-	glob wld(*(glob*)0);
-	for(int i=0;i<2;i++){
-		glob&g=*new glob(wld);
-		g.pos(p3(),p3()).dpos(p3(),p3(0,0,360/60/(i+1))).setvbo(vb);
-	}
+	glob&g=*new glob(wld);
+	g.dpos(p3(0,0,0),p3(0,0,10)).setvbo(vb);
+
+	glob&gg=*new glob(g);
+	gg.dpos(p3(0,.001f,0),p3(0,0,1)).setvbo(vb);
+//	for(int i=0;i<32;i++){
+//		glob&g=*new glob(wld);
+//		g.pos(p3(),p3()).dpos(p3(),p3(0,0,360/(i+1))).setvbo(vb);
+//	}
+
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 
 	tmr t,t1,t2;
@@ -1077,6 +1084,7 @@ int main(){
 //		const GLfloat mxwv[]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-1,1};
 		glUniformMatrix4fv(shader::umxwv,1,false,mx);
 
+		cout<<g<<endl;
 		wld.gldraw();
 
 		clk::dt=t2.dt();
