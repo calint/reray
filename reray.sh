@@ -1,8 +1,14 @@
-clang++ -o reray src/reray.cpp glfw/libglfw.a \
-  -framework cocoa \
-  -framework opengl \
-  -framework iokit
+clang++ -o reray src/reray.cpp \
+	glfw/lib/osx/libglfw.a \
+	-framework cocoa \
+	-framework opengl \
+ 	-framework iokit \
+	-O0 -g3 \
+	-pedantic -pedantic-errors -Wall -Wextra -Werror -Wconversion \
+	-std=gnu++11 \
+	-Wfatal-errors &&
 
-ls -la reray
+
+ls -la reray &&
 
 ./reray
