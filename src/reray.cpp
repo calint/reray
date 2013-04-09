@@ -837,6 +837,10 @@ private:
 	}
 };
 
+class vbo{};
+class texture{};
+class mtxstk{};
+
 int main(){
 	if(!glfwInit())return -1;
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
@@ -845,13 +849,10 @@ int main(){
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 	if(!glfwOpenWindow(1024,512,8,8,8,8,32,0,GLFW_WINDOW))return -1;
 	cout<<"  version: "<<glGetString(GL_VERSION)<<endl;
-
 	shader::init();
-	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state";return -1;}
-
 	glfwSwapInterval(0);
-	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state";return -1;}
 	glfwEnable(GLFW_STICKY_KEYS);
+	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state";return -1;}
 
 	tmr t;
 	long long frm=0;
