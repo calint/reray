@@ -856,13 +856,13 @@ class vbo{
 	GLuint glva;//vertex array
 	GLuint glvib;//indices array
 	GLuint glvb;
-	int nind;
+	GLsizei nind;
 	int elemtype;
 public:
 	vbo():glva(0),glvib(0),glvb(0),nind(0),elemtype(0){}
 	virtual~vbo(){}
 	virtual int nvertices(){return 4;}
-	virtual void vertices(float fa[]){
+	virtual void vertices(float fa[])const{
 		const float w=1;
 		int c=0;
 		//0
@@ -882,8 +882,8 @@ public:
 		fa[c++]= 1;fa[c++]=1;fa[c++]=1;fa[c++]=1;//rgba
 		fa[c++]= 1;fa[c++]=0;//st
 	}
-	virtual int nindices(){return 6;}
-	virtual void indices(char ba[]){
+	virtual GLsizei nindices(){return 6;}
+	virtual void indices(char ba[])const{
 		int c=0;
 		ba[c++]=0;ba[c++]=1;ba[c++]=2;
 		ba[c++]=2;ba[c++]=3;ba[c++]=0;
@@ -928,7 +928,8 @@ public:
 		indices(ib);
 		glGenBuffers(1,&glvib);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glvib);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,nind,ib,GL_STATIC_DRAW);
+		const GLsizeiptr n=(GLsizeiptr)(nind*(int)sizeof(char));
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,n,ib,GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 		delete ib;
 //		final String imgpath=imgpath();
@@ -952,7 +953,7 @@ public:
 //		System.out.println();
 
 	}
-	void gldraw(){
+	void gldraw()const{
 		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
 		glBindVertexArray(glva);
 		glEnableVertexAttribArray(0);
@@ -1019,27 +1020,19 @@ int main(){
 	vb.glload();
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 
-	tmr t;
+	tmr t,t1;
 	long long frm=0;
 	while(glfwGetWindowParam(GLFW_OPENED)){
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
-
 		frm++;
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
-
 //		const GLfloat ident[]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 //		glUniformMatrix4fv(shader::umxmw,16,true,ident);
 //		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
 //		glUniformMatrix4fv(shader::umxwv,16,true,ident);
-
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
 		vb.gldraw();
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
-
-		cout<<t.dt()<<endl;
+		cout<<frm<<" "<<t.dt()<<endl;
 		glfwSwapBuffers();
 	}
-	cout<<frm/t.dt()<<endl;
+	cout<<frm/t1.dt()<<endl;
 	return 0;
 }
