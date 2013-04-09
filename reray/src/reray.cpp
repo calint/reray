@@ -1,5 +1,7 @@
 #include<iostream>
 using namespace std;
+#define GLFW_INCLUDE_GL3
+#define GLFW_NO_GLU
 #include "../glfw/glfw.h"
 #include<sys/time.h>
 
@@ -202,7 +204,8 @@ namespace shader{
 //		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;}"};
 //		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;gl_TexCoord[2]=gl_TextureMatrix[2]*gl_ModelViewMatrix*gl_Vertex;}"};
 //		const GLchar*vtxshdrsrc[]={"varying vec3 vnml;void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;gl_TexCoord[2]=gl_TextureMatrix[2]*gl_ModelViewMatrix*gl_Vertex;vnml=normalize(gl_NormalMatrix*gl_Normal);}"};
-		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=pv;}"};
+//		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=pv;}"};
+		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=false;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=vec4(in_pos,1);}"};
 		const GLint vtxshdrsrclen[]={GLint(strlen(vtxshdrsrc[0]))};
 		glShaderSource(vtxshdr,1,vtxshdrsrc,vtxshdrsrclen);
 		glCompileShader(vtxshdr);
@@ -223,7 +226,7 @@ namespace shader{
 //		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;uniform sampler2D ushad;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?-.2:0.;gl_FragColor=la*vec4(1,1,1,1)+tex+gl_Color;}"};
 //		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);gl_FragColor=la*(tex+ln+gl_Color);}"};
 //		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);float wa=gl_FragCoord.w;gl_FragColor=la*(ln*.2+wa*.5+tex+gl_Color);}"};
-		const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;uniform bool urendzbuf;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;const vec4 transp=vec4(0,0,0,0);void main(){vec4 txrgba=texture(utx,txcoord);if(txrgba.rgba==transp)discard;float c=gl_FragCoord.z;if(!urendzbuf)out_Color=txrgba*rgba;else	out_Color=vec4(c,c,c,1);}"};
+		const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba;}"};
 		const GLint frgshdrsrclen[]={GLint(strlen(frgshdrsrc[0]))};
 		glShaderSource(frgshdr,1,frgshdrsrc,frgshdrsrclen);
 		glCompileShader(frgshdr);
@@ -243,14 +246,13 @@ namespace shader{
 			cerr<<"program did not link"<<endl<<buf<<endl;
 			throw signl();
 		}
-
+//		if((umxmw=glGetUniformLocation(prog,"umxmw"))==-1)throw signl(0,"umxmw not found");
+//		if((umxwv=glGetUniformLocation(prog,"umxwv"))==-1)throw signl(0,"umxwv not found");
+//		if((udopersp=glGetUniformLocation(prog,"udopersp"))==-1)throw signl(0,"udopersp not found");
+//		if((urendzbuf=glGetUniformLocation(prog,"urendzbuf"))==-1)throw signl(0,"urendzbuf not found");
+//		if((utx=glGetUniformLocation(prog,"utx"))==-1)throw signl(0,"utx not found");
 		glUseProgram(prog);
 
-		if((umxmw=glGetUniformLocation(prog,"umxmw"))==-1)throw signl(0,"umxmw not found");
-		if((umxwv=glGetUniformLocation(prog,"umxwv"))==-1)throw signl(0,"umxwv not found");
-		if((udopersp=glGetUniformLocation(prog,"udopersp"))==-1)throw signl(0,"udopersp not found");
-		if((urendzbuf=glGetUniformLocation(prog,"urendzbuf"))==-1)throw signl(0,"urendzbuf not found");
-		if((utx=glGetUniformLocation(prog,"utx"))==-1)throw signl(0,"utx not found");
 		if(glGetError())throw signl(0,"shader::init");
 	}
 };
@@ -557,13 +559,17 @@ public:
 		}
 		metrics::globsrend++;
 //		flf();l("included")<<endl;
-		glTranslatef(getx(),gety(),getz());
-		glRotatef(a.gety(),0,1,0);
-		glRotatef(a.getx(),1,0,0);
-		glRotatef(a.getz(),0,0,1);
+//		glTranslatef(getx(),gety(),getz());
+//		glRotatef(a.gety(),0,1,0);
+//		glRotatef(a.getx(),1,0,0);
+//		glRotatef(a.getz(),0,0,1);
 		if(drawboundingspheres)drawboundingsphere();
 		gldraw();
-		for(auto g:chs){glPushMatrix();g->culldraw(bv);glPopMatrix();}//? coordsyschange
+		for(auto g:chs){
+//			glPushMatrix();
+			g->culldraw(bv);
+//			glPopMatrix();
+		}//? coordsyschange
 	}
 	void dotck(){
 		if(tk==clk::tk){
@@ -615,8 +621,8 @@ protected:
 	inline bool isitem()const{return bits&8;}
 	inline glob&setcolmx(const bool b){if(b)bits|=16;else bits&=0xfffffff0;return*this;}
 	void drawboundingsphere(){
-		const GLbyte i=127;
-		glColor3b(i,i,i);
+//		const GLbyte i=127;
+//		glColor3b(i,i,i);
 		int detail=(int)(.4f*radius()*drawboundingspheresdetail);
 		if(detail<drawboundingspheresdetail)
 			detail=drawboundingspheresdetail;
@@ -727,13 +733,13 @@ public:
 	~grid(){metrics::ngrids--;clear();}
 	void gldraw(){
 		//? sphere in viewpyr check
-		const GLbyte c=(GLbyte)(po.gety()/15*127);
-		glColor3b(0,0,c);
-		glPushMatrix();
-		glTranslatef(po.getx(),po.gety(),po.getz());
+//		const GLbyte c=(GLbyte)(po.gety()/15*127);
+//		glColor3b(0,0,c);
+//		glPushMatrix();
+//		glTranslatef(po.getx(),po.gety(),po.getz());
 		//glutWireCube(s*2);
 		//glutWireSphere(s,8,8);
-		glPopMatrix();
+//		glPopMatrix();
 		for(auto gr:grds){
 			if(!gr)
 				continue;
@@ -786,8 +792,16 @@ public:
 			return;
 		}
 		metrics::gridsrend++;
-		for(auto g:ls){glPushMatrix();g->culldraw(bv);glPopMatrix();}
-		for(auto g:lsmx){glPushMatrix();g->culldraw(bv);glPopMatrix();}
+		for(auto g:ls){
+//			glPushMatrix();
+			g->culldraw(bv);
+//			glPopMatrix();
+		}
+		for(auto g:lsmx){
+//			glPushMatrix();
+			g->culldraw(bv);
+//			glPopMatrix();
+		}
 		for(auto&g:grds)
 			if(g)
 				g->culldraw(bv);
@@ -836,10 +850,156 @@ private:
 		return true;
 	}
 };
+//#include<OpenGL/gl3.h>
 
-class vbo{};
-class texture{};
-class mtxstk{};
+class vbo{
+	GLuint glva;//vertex array
+	GLuint glvib;//indices array
+	GLuint glvb;
+	int nind;
+	int elemtype;
+public:
+	vbo():glva(0),glvib(0),glvb(0),nind(0),elemtype(0){}
+	virtual~vbo(){}
+	virtual int nvertices(){return 4;}
+	virtual void vertices(float fa[]){
+		const float w=1;
+		int c=0;
+		//0
+		fa[c++]=-w;fa[c++]=w;fa[c++]=0;//xyz
+		fa[c++]= 1;fa[c++]=0;fa[c++]=0;fa[c++]=1;//rgba
+		fa[c++]= 0;fa[c++]=0;//st
+//		//1
+		fa[c++]=-w;fa[c++]=-w;fa[c++]=0;//xyz
+		fa[c++]= 0;fa[c++]=1;fa[c++]=0;fa[c++]=1;//rgba
+		fa[c++]= 0;fa[c++]=1;//st
+//		//2
+		fa[c++]= w;fa[c++]=-w;fa[c++]=0;//xyz
+		fa[c++]= 0;fa[c++]=0;fa[c++]=1;fa[c++]=1;//rgba
+		fa[c++]= 1;fa[c++]=1;//st
+//		//3
+		fa[c++]= w;fa[c++]= w;fa[c++]=0;//xyz
+		fa[c++]= 1;fa[c++]=1;fa[c++]=1;fa[c++]=1;//rgba
+		fa[c++]= 1;fa[c++]=0;//st
+	}
+	virtual int nindices(){return 6;}
+	virtual void indices(char ba[]){
+		int c=0;
+		ba[c++]=0;ba[c++]=1;ba[c++]=2;
+		ba[c++]=2;ba[c++]=3;ba[c++]=0;
+	}
+	void glload(){
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		const int stride=9;//xyz,rgba,st
+		const int sizeofnum=sizeof(float);//sizeof(float)
+		const int stridebytes=stride*sizeofnum;
+
+		const int nv=nvertices();
+		cout<<"  "<<nv<<" vertices, "<<stridebytes<<" B/vertex"<<endl;
+		float*vb=new float[nv*stride];
+		vertices(vb);
+		glGenVertexArrays(1,&glva);
+		glBindVertexArray(glva);
+		glGenBuffers(1,&glvb);
+		glBindBuffer(GL_ARRAY_BUFFER,glvb);
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		glBufferData(GL_ARRAY_BUFFER,nv*stridebytes,vb,GL_STATIC_DRAW);
+
+		const GLenum err=glGetError();
+		if(err==GL_INVALID_ENUM)cout<<"opengl error: GL_INVALID_ENUM"<<endl;
+		else if(err==GL_INVALID_VALUE)cout<<"opengl error: GL_INVALID_VALUE"<<endl;
+		else if(err==GL_INVALID_OPERATION)cout<<"opengl error: GL_INVALID_OPERATION"<<endl;
+		else if(err==GL_OUT_OF_MEMORY)cout<<"opengl error: GL_OUT_OF_MEMORY"<<endl;
+
+		//		glBufferData(GL_ARRAY_BUFFER,nv*stridebytes,vb,GL_STATIC_DRAW);
+		if(err!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		glVertexAttribPointer(0,3,GL_FLOAT,false,stridebytes,0);// positions
+		glVertexAttribPointer(1,4,GL_FLOAT,false,stridebytes,(const GLvoid*)(3*sizeofnum));// colors, 16 bytes offset
+		glVertexAttribPointer(2,2,GL_FLOAT,false,stridebytes,(const GLvoid*)(7*sizeofnum));// texture, 32 bytes offset
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		glBindBuffer(GL_ARRAY_BUFFER,0);
+		glBindVertexArray(0);
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		delete vb;
+
+		nind=nindices();
+		cout<<"  "<<nind<<" indices, 1 B/index"<<endl;
+		char*ib=new char[nind];
+		indices(ib);
+		glGenBuffers(1,&glvib);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glvib);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,nind,ib,GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+		delete ib;
+//		final String imgpath=imgpath();
+//		if(imgpath!=null){
+//			System.out.println("  texture "+imgpath);
+//			tx=loadtexture(imgpath,null,0,0);
+//		}else{
+//			final int[]txsize=imgsize();
+//			if(txsize!=null){
+//				final int wi=txsize[0],hi=txsize[1],bpp=txsize[2];
+//				final int n=wi*hi*bpp;
+//				System.out.println("  texture alloc "+wi+"x"+hi+"x"+bpp*8+" bpp");
+//				final ByteBuffer txdata=ByteBuffer.allocateDirect(n);
+//				System.out.println("  texture generate");
+//				imggen(txdata);
+//				txdata.flip();
+//				System.out.println("  texture load");
+//				tx=loadtexture(null,txdata,txsize[0],txsize[1]);
+//			}
+//		}
+//		System.out.println();
+
+	}
+	void gldraw(){
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		glBindVertexArray(glva);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+
+//		if(tx!=null){
+//			glBindTexture(GL_TEXTURE_2D,tx.id);
+//			glEnableVertexAttribArray(2);
+//			glUniform1i(shader.utx,0);
+//		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glvib);
+		if(elemtype==0){
+			glDrawElements(GL_TRIANGLES,nind,GL_UNSIGNED_BYTE,0);
+		}else if(elemtype==1){
+			glDrawElements(GL_TRIANGLE_FAN,nind,GL_UNSIGNED_BYTE,0);
+		}else if(elemtype==2){
+			glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+			glDrawElements(GL_TRIANGLES,nind,GL_UNSIGNED_BYTE,0);
+			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		}else if(elemtype==3){
+			glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+			glDisableVertexAttribArray(2);
+//			glDisableVertexAttribArray(1);
+			glDrawElements(GL_TRIANGLE_FAN,nind,GL_UNSIGNED_BYTE,0);
+			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		}else if(elemtype==4){
+			glDrawElements(GL_TRIANGLE_FAN,nind,GL_UNSIGNED_BYTE,0);
+			glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+			glPolygonOffset(-.1f,.1f);
+			glDisableVertexAttribArray(2);
+			glDisableVertexAttribArray(1);
+			glDrawElements(GL_TRIANGLE_FAN,nind,GL_UNSIGNED_BYTE,0);
+			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		}else throw signl(0,"unknown elemtype");
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+
+	}
+};
+class texture{
+	GLint id,wi,hi;
+};
+class mtxstk{
+//	const m3&top()const{return 0;}
+//	const m3&pushmul(const m3&m){return 0;}
+//	const m3&pop(){return 0;}
+};
 
 int main(){
 	if(!glfwInit())return -1;
@@ -852,15 +1012,31 @@ int main(){
 	shader::init();
 	glfwSwapInterval(0);
 	glfwEnable(GLFW_STICKY_KEYS);
-	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state";return -1;}
+	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after init";return -1;}
+
+	//init vbos
+	vbo vb;
+	vb.glload();
+	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 
 	tmr t;
 	long long frm=0;
 	while(glfwGetWindowParam(GLFW_OPENED)){
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+
 		frm++;
-//		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-//		glMatrixMode(GL_PROJECTION_MATRIX);
-//		if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state 2";return -1;}
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+
+//		const GLfloat ident[]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+//		glUniformMatrix4fv(shader::umxmw,16,true,ident);
+//		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+//		glUniformMatrix4fv(shader::umxwv,16,true,ident);
+
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+		vb.gldraw();
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
+
 		cout<<t.dt()<<endl;
 		glfwSwapBuffers();
 	}
