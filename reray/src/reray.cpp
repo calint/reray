@@ -1064,16 +1064,19 @@ int main(){
 //		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
 		frm++;
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		GLfloat mx[16];
-		wld.getmxmw().togl(mx);
-		glUniformMatrix4fv(shader::umxmw,1,false,mx);
 
+//		wld.getmxmw().togl(mx);
+//		glUniformMatrix4fv(shader::umxmw,1,false,mx);
+
+		//camera
 		m3 mwv;
 		mwv.ident();
 		mwv.mw(p3(0,0,-1),p3());
+		GLfloat mx[16];
 		mwv.togl(mx);
 //		const GLfloat mxwv[]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-1,1};
 		glUniformMatrix4fv(shader::umxwv,1,false,mx);
+
 		wld.gldraw();
 
 		clk::dt=t2.dt();
