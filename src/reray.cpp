@@ -751,10 +751,10 @@ public:
 			ppsaved=false;//?
 		}
 //		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
-		dd=p3(f).transl(fi).scale(1/m).scale(dt());
+		dd=p3(f).transl(fi).scale(1/m);
 		fi.clr();
-		d.transl(dd);
-		transl(d);
+		d.transl(dd,dt());
+		transl(d,dt());
 		a.transl(da,dt());
 		np.set(*this);
 		nd.set(d);
@@ -1667,11 +1667,12 @@ int main(){
 	glob&g=*new glob(wold::get());
 	g.dpos(p3(0,0,0),p3(0,0,10)).setvbo(vb);
 
-	glob&gg=*new glob(g);
-	gg.dpos(p3(.001f,.001f,.001f),p3(0,0,1)).setvbo(vb);
+//	glob&gg=*new glob(g);
+//	gg.dpos(p3(.1f,.1f,.1f),p3(0,0,10)).setvbo(vb);
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
+//	win.dpos(p3(0,0,1),p3(0,0,0));
 	win.dpos(p3(0,0,0),p3(0,0,0));
 
 //	for(int i=0;i<32;i++){
