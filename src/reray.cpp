@@ -755,6 +755,7 @@ public:
 		fi.clr();
 		d.transl(dd,dt());
 		transl(d,dt());
+		cout<<id<<" "<<dt()<<"   "<<*this<<endl;
 		a.transl(da,dt());
 		np.set(*this);
 		nd.set(d);
@@ -880,8 +881,8 @@ protected:
 		mxmwpos=*this;
 
 		mxmw=g.mxmw;
-		const m3 m(mxmwpos,mxmwagl);
-		mxmw.mul(m);//? ifmxmwidentskip
+		const m3 m(mxmwpos,mxmwagl);//? cache
+		mxmw.mul(m);//? ifidentskip
 
 		return true;
 	}
@@ -1030,15 +1031,9 @@ private:
 		return true;
 	}
 };
-//#include<OpenGL/gl3.h>
 
 class texture{
 	GLint id,wi,hi;
-};
-class mtxstk{
-//	const m3&top()const{return 0;}
-//	const m3&pushmul(const m3&m){return 0;}
-//	const m3&pop(){return 0;}
 };
 
 class keyb{
@@ -1665,31 +1660,26 @@ int main(){
 	vb.glload();
 
 	glob&g=*new glob(wold::get());
-	g.dpos(p3(0,0,0),p3(0,0,10)).setvbo(vb);
+	g.setvbo(vb);
+	g.dpos(p3(0,0,0),p3(0,0,10));
 
-//	glob&gg=*new glob(g);
-//	gg.dpos(p3(.1f,.1f,.1f),p3(0,0,10)).setvbo(vb);
+	glob*gg=new glob(g);
+	gg->setvbo(vb);
+	gg->pos(p3(.5f,.5f,0),p3());
+	gg->dpos(p3(0,0,0),p3(0,0,10));
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
-//	win.dpos(p3(0,0,1),p3(0,0,0));
-	win.dpos(p3(0,0,0),p3(0,0,0));
-
-//	for(int i=0;i<32;i++){
-//		glob&g=*new glob(wld);
-//		g.pos(p3(),p3()).dpos(p3(),p3(0,0,360/(i+1))).setvbo(vb);
-//	}
 
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
-
 	long long frm=0;
 	tmr t,t1,t2;
 	while(glfwGetWindowParam(GLFW_OPENED)){
 		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
 		frm++;
+		clk::tk++;
 		win.drawframe();
 		clk::dt=t2.dt();
-		clk::tk++;
 		wold::get().dotck();
 		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<endl;
 		glfwSwapBuffers();
