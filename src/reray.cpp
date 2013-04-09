@@ -328,6 +328,16 @@ public:
 	inline m3&zplane(GLfloat*v){v[0]=xz;v[1]=yz;v[2]=zz;v[3]=oz;return*this;}
 	inline m3&wplane(GLfloat*v){v[0]=xo;v[1]=yo;v[2]=zo;v[3]=oo;return*this;}
 	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; ox=oy=oz=0; oo=1;return*this;}
+	m3&wv(const p3&p,const p3&a){
+		ident();
+		ox=-p.getx();
+		oy=-p.gety();
+		oz=-p.getz();
+		rotz(degtorad(-a.getz()));
+//		rotx(degtorad(-a.getx()));
+//		roty(degtorad(-a.gety()));
+		return*this;
+	}
 	m3&mw(const p3&p,const p3&a){//? Mszxyt
 		ident();
 		roty(degtorad(a.gety()));
@@ -574,12 +584,9 @@ public:
 
 	}
 	void gldraw()const{
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
 		glBindVertexArray(glva);
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
-
 //		if(tx!=null){
 //			glBindTexture(GL_TEXTURE_2D,tx.id);
 //			glEnableVertexAttribArray(2);
@@ -609,8 +616,6 @@ public:
 			glDrawElements(GL_TRIANGLE_FAN,nind,GL_UNSIGNED_BYTE,0);
 			glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 		}else throw signl(0,"unknown elemtype");
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error state");
-
 	}
 };
 
@@ -709,7 +714,7 @@ public:
 	}
 	void culldraw(const bvol&bv){
 		if(culldrawtk==clk::tk){
-//			flf();l("double rend");
+			flf();l("double rend");
 			return;
 		}
 		culldrawtk=clk::tk;
@@ -721,18 +726,10 @@ public:
 			return;
 		}
 		metrics::globsrend++;
-//		flf();l("included")<<endl;
-//		glTranslatef(getx(),gety(),getz());
-//		glRotatef(a.gety(),0,1,0);
-//		glRotatef(a.getx(),1,0,0);
-//		glRotatef(a.getz(),0,0,1);
 		if(drawboundingspheres)drawboundingsphere();
 		gldraw();
-		for(auto g:chs){
-//			glPushMatrix();
+		for(auto g:chs)
 			g->culldraw(bv);
-//			glPopMatrix();
-		}//? coordsyschange
 	}
 	void dotck(){
 		if(tk==clk::tk){
@@ -795,9 +792,9 @@ protected:
 	void drawboundingsphere(){
 //		const GLbyte i=127;
 //		glColor3b(i,i,i);
-		int detail=(int)(.4f*radius()*drawboundingspheresdetail);
-		if(detail<drawboundingspheresdetail)
-			detail=drawboundingspheresdetail;
+//		int detail=(int)(.4f*radius()*drawboundingspheresdetail);
+//		if(detail<drawboundingspheresdetail)
+//			detail=drawboundingspheresdetail;
 		//glutSolidSphere(radius(),detail,detail);
 	}
 	//? static
@@ -903,6 +900,16 @@ class grid{
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
+	void tick(){
+		for(auto g:ls)
+			g->dotck();
+		for(auto g:lsmx)
+			g->dotck();
+		if(grds[0])
+			for(auto gr:grds)
+				if(gr)
+					gr->tick();
+	}
 	void gldraw(){
 		//? sphere in viewpyr check
 //		const GLbyte c=(GLbyte)(po.gety()/15*127);
@@ -953,9 +960,10 @@ public:
 					for(auto g2:lsmx)
 						g1->coldet(*g2);
 		}
-		for(auto g:grds)
-			if(g)
-				g->coldet();
+		if(grds[0])
+			for(auto g:grds)
+				if(g)
+					g->coldet();
 	}
 	void culldraw(const bvol&bv){
 		const int c=bv.cull(po,s*1.41f);//? radius
@@ -1033,7 +1041,611 @@ class mtxstk{
 //	const m3&pop(){return 0;}
 };
 
-static glob wld(*(glob*)0);
+class keyb{
+public:
+	virtual~keyb(){};//?
+	virtual void onkeyb(const char c=0,const bool pressed=false,const int x=0,const int y=0)=0;
+};
+
+class wold:public glob{
+	static wold wd;
+	float t=0;
+public:
+	wold(const float r=15):
+		glob(*(glob*)0,p3(),p3(),r),
+		t(0),
+		grd(r),
+		kb(0),
+		drawaxis(false),
+		drawgrid(true),
+		hidezplane(false),
+		coldetbrute(false),
+		coldetgrid(true)
+	{}
+	grid grd;
+	keyb*kb;
+	bool drawaxis,drawgrid,hidezplane,coldetbrute,coldetgrid;
+	inline static wold&get(){return wd;}
+	inline float gett()const{return t;}
+	inline void applyg(p3&dd)const{dd.transl(0,-9.82f,0);}
+	void glload(){}
+	keyb&keyb()const{return*kb;}
+//	void gldraw(){
+////		flf();l("draw world");
+////		glCullFace(GL_FRONT);
+////		glColor3b(0,0,0);
+////		glutSolidSphere(radius(),20,20);
+//		glDisable(GL_LIGHTING);
+//		glDisable(GL_CULL_FACE);
+//		const float r=radius();
+//		if(drawgrid&&coldetgrid)
+//			grd.gldraw();
+//		if(drawaxis){
+//			//glPolygonOffset
+//			glBegin(GL_LINE_STRIP);
+//
+//			glColor3b(127,0,0);
+//			glVertex3f(0,0,0);
+//
+//			glColor3b(127,0,0);
+//			glVertex3f(r,0,0);
+//			glVertex3f(0,0,0);
+//
+//			glColor3b(0,127,0);
+//			glVertex3f(0,0,0);
+//
+//			glColor3b(0,127,0);
+//			glVertex3f(0,r,0);
+//
+//			glColor3b(0,0,127);
+//			glVertex3f(0,0,0);
+//
+//			glColor3b(0,0,127);
+//			glVertex3f(0,0,r);
+//			glEnd();
+//		}
+//		if(!hidezplane){
+//			glPushMatrix();
+//	//		glTranslatef(0,0,01f);
+//			const float a=float(sin(.1*t));
+//			glColor3f(a,a,a);
+//			glBegin(GL_TRIANGLE_FAN);
+//			glVertex2f(0,0);
+//			glVertex2f(r,0);
+//			const float dtr=3.14159f/180;
+//			const int di=360/24/2/2;
+//			for(int i=di;i<=360;i+=di){
+//				const float rd=i*dtr;
+//				glVertex3f(r*cos(rd),0,r*sin(rd));
+//			}
+//			glEnd();
+//			glPopMatrix();
+//		}
+//		glEnable(GL_LIGHTING);
+//		glEnable(GL_CULL_FACE);
+//	}
+	void tick(){
+		clk::timerrestart();
+		glob::tick();
+		metrics::dtupd=clk::timerdt();
+
+		clk::timerrestart();
+		t+=dt();
+		if(coldetgrid){
+			grd.clear();
+			grd.addall(chls());
+			grd.coldet();
+		}
+		metrics::dtcoldetgrd=clk::timerdt();
+
+		clk::timerrestart();
+		if(coldetbrute){
+			auto i1=getchs().begin();//? chls() givescrash,const?
+			while(true){
+				auto i2=getchs().rbegin();
+				if(*i1==*i2)
+					break;
+				glob&g1=*(*i1);
+				do{
+					glob&g2=*(*i2);
+					g1.coldet(g2);
+					i2++;
+				}while(*i1!=*i2);
+				i1++;
+			}
+		}
+		metrics::dtcoldetbrute=clk::timerdt();
+	}
+};
+wold wold::wd;
+//static wold wld;
+//static glob wld(*(glob*)0);
+
+class vehicle:public glob,public keyb{
+	float fwdbckrate;
+	float straferate;
+	float turnrate;
+	float rocketforce;
+	float rocketfuelburnrate;
+	float smallflapimpulseforce;
+	float smallflapfuelburn;
+	float bigflapimpulseforce;
+	float bigflapfuelburn;
+	float leapimpulseforce;
+	float leapfuelburn;
+	float flapperyrecoveryrate;
+	float flapperymax;
+	float rocketryrecoveryrate;
+	float rocketrymax;
+	float initflappery;
+	float initrocketry;
+	float flappery;
+	float rocketry;
+	int items=0;
+	int player=0;
+	m3 mxv;
+public:
+	vehicle(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
+		glob(g,p,a,r,density_gcm3,bounciness),
+		fwdbckrate(.001f),
+		straferate(.001f),
+		turnrate(180),
+		rocketforce(150*mass()),
+		rocketfuelburnrate(6),
+		smallflapimpulseforce(7*mass()),
+		smallflapfuelburn(.4f),
+		bigflapimpulseforce(15*mass()),
+		bigflapfuelburn(1),
+		leapimpulseforce(17*mass()),
+		leapfuelburn(2),
+		flapperyrecoveryrate(3),
+		flapperymax(1),
+		rocketryrecoveryrate(1),
+		rocketrymax(3),
+		initflappery(0),
+		initrocketry(0),
+		flappery(initflappery),
+		rocketry(initrocketry),
+		items(0),
+		player(0)
+	{}
+	virtual~vehicle(){}
+	virtual void tick(){
+		flappery+=dt(flapperyrecoveryrate);
+		if(flappery>flapperymax)flappery=flapperymax;
+		rocketry+=dt(rocketryrecoveryrate);
+		if(rocketry>rocketrymax)rocketry=rocketrymax;
+		glob::tick();
+	}
+	virtual void handlekeys(){
+		pp.set(*this);ppsaved=true;
+		mxv.mw(*this,agl());
+		if(hdlkeydn('w')){fi.transl(mxv.zaxis().sety(0).norm().scale(-fwdbckrate));}
+		if(hdlkeydn('s')){fi.transl(mxv.zaxis().sety(0).norm().scale(fwdbckrate));}
+		if(hdlkeydn('d')){fi.transl(mxv.xaxis().scale(straferate));}
+		if(hdlkeydn('a')){fi.transl(mxv.xaxis().scale(-straferate));}
+		if(hdlkeydn('j')){agl().transl(0,dt(turnrate),0);}
+		if(hdlkeydn('l')){agl().transl(0,-dt(turnrate),0);}
+		if(hdlkeydn(',')&&rocketry>0){f.transl(0,dt(rocketforce),0);rocketry-=dt(rocketfuelburnrate);}else{f.set(0,0,0);}
+		if(hdlkeydn('b')){d.set(0,0,0);nd.set(0,0,0);}//? use fi and f=ma
+		if(hdlkeydn('t')){transl(mxv.yaxis(),dt(fwdbckrate));}
+		if(hdlkeydn('g')){transl(mxv.yaxis(),dt(-fwdbckrate));}
+		if(hdlkeytg('i')){if(flappery>0){fi.transl(0,smallflapimpulseforce,0);flappery-=smallflapfuelburn;}}
+		if(hdlkeytg('k')){if(flappery>0){fi.transl(0,bigflapimpulseforce,0);flappery-=bigflapfuelburn;}}
+		if(hdlkeytg('m')){if(flappery>0){fi.transl(mxv.zaxis().neg().negy().scale(leapimpulseforce));flappery-=leapfuelburn;}}
+		if(hdlkeytg('x')){agl().transl(7,0,0);}
+		if(hdlkeytg('c')){agl().transl(-7,0,0);}
+		if(hdlkeytg('z')){agl().setx(0);}
+	}
+	void onkeyb(const char c,const bool pressed,const int x,const int y){if(pressed)keydn(c,x,y);else keyup(c,x,y);}
+	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
+	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
+	inline int getplayer()const{return player;}
+	inline void setplayer(const int i){player=i;}
+	inline const m3&getmxv()const{return mxv;}
+	inline float getflappery()const{return flappery;}
+	inline float getrocketry()const{return rocketry;}
+	inline float getitems()const{return items;}
+protected:
+	bool hdlkeydn(const char key){
+		const int i=keyix(key);
+		if(!i)return false;
+		const int s=net::keys[player][i];
+		if(s==0)return false;
+		if(s==2)return true;
+		if(s!=1)throw signl(2,"unknownstate");
+		net::keys[player][i]=2;
+		return true;
+	}
+	bool hdlkeytg(const char key){
+		const int i=keyix(key);
+		if(!i)return false;
+		const int s=net::keys[player][i];
+		if(s==0)return false;
+		if(s==2)return false;
+		if(s!=1)return false;
+		net::keys[player][i]=2;
+		return true;
+	}
+private:
+	void keydn(const char key,const int x,const int y){
+		const int i=keyix(key);
+		if(!i)return;
+		const int s=net::keys[player][i];
+		if(s==1)return;
+		net::keys[player][i]=1;
+		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+	}
+	void keyup(const char key,const int x,const int y){
+		const int i=keyix(key);
+		const int s=net::keys[player][i];
+		if(s==0)return;
+		if(s==1)return;
+		if(s!=2)throw signl(2,"unknownstate");
+		net::keys[player][i]=0;
+		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+	}
+	int keyix(const char key){//? char keys[]
+		switch(key){
+		case 'w':return 1;
+		case 'j':return 2;
+		case 's':return 3;
+		case 'l':return 4;
+		case 'a':return 5;
+		case 'd':return 6;
+		case 'i':return 7;
+		case 'k':return 8;
+		case 'm':return 9;
+		case ',':return 10;
+		case 'z':return 11;
+		case 'x':return 12;
+		case 'c':return 13;
+		case ' ':return 14;
+		case 'b':return 15;
+		case 9:return 16;
+		case 27:return 17;
+		case 't':return 18;
+		case 'g':return 19;
+		case 'y':return 20;
+		case 'h':return 21;
+		case '1':return 22;
+		case '2':return 23;
+		case '3':return 24;
+		case '4':return 25;
+		case '5':return 26;
+		case '6':return 27;
+		case '7':return 28;
+		case '8':return 29;
+		case '9':return 30;
+		case '0':return 31;
+		default:return 0;
+		}
+	}
+};
+
+class windo:public vehicle{
+	bool dodrawhud,gamemode,fullscr,consolemode,viewpointlht,drawshadows,coki3d;
+	float zoom;
+	int wi,hi,wiprv,hiprv;
+	GLuint gltexshadowmap;
+	GLsizei shadowmapsize;
+	float firereload;
+	tmr drawtmr;
+public:
+	windo(glob&g=wold::get(),const p3&p=p3(),const p3&a=p3(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):
+		vehicle(g,p,a,r,.25f),
+		dodrawhud(false),
+		gamemode(false),
+		fullscr(false),
+		consolemode(false),
+		viewpointlht(false),
+		drawshadows(true),
+		coki3d(false),
+		zoom(zoom),
+		wi(width),
+		hi(height),
+		wiprv(wi),
+		hiprv(hi),
+		gltexshadowmap(0),
+		shadowmapsize(512),
+		firereload(0)
+	{}
+	void reshape(const int width,const int height){sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;}
+	void drawframe(){
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		m3 mwv;
+		mwv.wv(*this,agl());
+		GLfloat mx[16];
+		mwv.togl(mx);
+		glUniformMatrix4fv(shader::umxwv,1,false,mx);
+		const bvol bv(0,0);
+		wold::get().culldraw(bv);
+	}
+//	void drawframe(){
+//		const float freq=drawtmr.dt();
+//		drawtmr.restart();
+//		cout<<"\nframe("<<metrics::frames++<<") last frame dt="<<freq<<" s  fps ~"<<1/freq;
+//		clk::timerrestart();
+//		const GLfloat lhtpos[]={getx(),gety()+radius()*2,getz(),1};
+////		GLfloat mflhtproj[16];
+//		GLfloat mxtexlht[16];
+//		GLfloat mxlhtwv[16];
+//
+//		glEnable(GL_CULL_FACE);
+//		glClearDepth(1);
+//		glEnable(GL_DEPTH_TEST);
+//		if(drawshadows){
+//			if(!gltexshadowmap){
+//				glActiveTexture(GL_TEXTURE2);
+//				glGenTextures(1,&gltexshadowmap);
+//				glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
+//				glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,shadowmapsize,shadowmapsize,0,GL_DEPTH_COMPONENT,GL_FLOAT,0);
+//				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+//				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+//				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);
+//				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);
+////				const GLfloat bordercolor[]={1,0,0,0};
+//				const GLfloat bordercolor[]={0,0,0,0};
+//				glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,bordercolor);
+//			}
+////			glMatrixMode(GL_PROJECTION);
+////			glLoadIdentity();
+////			glGetFloatv(GL_PROJECTION_MATRIX,mflhtproj);
+////			glMatrixMode(GL_MODELVIEW);
+////			glLoadIdentity();
+//			const p3 lhtlookat=p3(getmxv().zaxis().neg().scale(10)).transl(*this);
+////			gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], lhtlookat.getx(),lhtlookat.gety(),lhtlookat.getz(), 0,1,0);
+////			glGetFloatv(GL_MODELVIEW_MATRIX,mxlhtwv);
+////			glLoadIdentity();
+////			gluPerspective(80,1,.001,1000);
+////			gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], lhtlookat.getx(),lhtlookat.gety(),lhtlookat.getz(), 0,1,0);
+////			glGetFloatv(GL_MODELVIEW_MATRIX,mxtexlht);
+//			glCullFace(GL_FRONT);
+//			if(!viewpointlht)
+//				glColorMask(0,0,0,0);
+//			else
+//				glClear(GL_COLOR_BUFFER_BIT);
+//			glClear(GL_DEPTH_BUFFER_BIT);
+//			glViewport(0,0,shadowmapsize,shadowmapsize);
+//			glUseProgram(0);//? depthbuffershader
+//
+//			const p3 lhtcoord(lhtpos[0],lhtpos[1],lhtpos[2]);
+//			const p3 zinv=p3(mxlhtwv[2],mxlhtwv[6],mxlhtwv[10]);
+//			const p3n backplane(lhtcoord,zinv);//? viewfurst
+//			const p3n cullplanes[]{backplane};
+//			const bvol bv(1,cullplanes);
+//			wold::get().gldraw();//? y culled
+//			wold::get().grd.culldraw(bv);//? cull viewfurst
+//			clk::tk++;//? increase frame instead of clear rendered bit
+//			if(viewpointlht)
+//				return;
+//			glActiveTexture(GL_TEXTURE2);
+//			glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
+//			glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,shadowmapsize,shadowmapsize);//? fbo
+//			glColorMask(1,1,1,1);
+//			glUseProgram(shader::prog);//? glprog.use()
+//		}
+//		glClearColor(.1f,.1f,.5f,1);
+//		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//		glCullFace(GL_BACK);
+//		glViewport(0,0,wi,hi);
+//		glMatrixMode(GL_PROJECTION);
+//		glLoadIdentity();
+//		const float viewangle_deg=45*zoom;
+//		gluPerspective(viewangle_deg,(GLdouble)wi/hi,.001f,1000);
+//		const p3 lookat=p3(getmxv().zaxis().neg()).transl(*this);
+//		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), 0,1,0);
+////		GLfloat mfcamproj[16];glGetFloatv(GL_PROJECTION_MATRIX,mfcamproj);
+//
+//		glMatrixMode(GL_MODELVIEW);
+//		glLoadIdentity();
+//		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), 0,1,0);
+//		GLfloat mf[16];glGetFloatv(GL_MODELVIEW_MATRIX,mf);
+//		glLoadIdentity();
+//
+//		if(drawshadows){
+//			glActiveTexture(GL_TEXTURE2);
+//			glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
+//			//glGenerateMipmap(GL_TEXTURE_2D);
+//			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+//			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+//
+//			glMatrixMode(GL_TEXTURE);
+//			const GLfloat bias[]={.5f,0,0,0, 0,.5f,0,0, 0,0,.5f,0, .5f,.5f,.5f,1};
+//			glLoadMatrixf(bias);
+//			glMultMatrixf(mxtexlht);
+//			glMatrixMode(GL_MODELVIEW);
+//		}
+//
+//
+//		const p3 xinv=p3(mf[0],mf[4],mf[8]);
+//		const p3 yinv=p3(mf[1],mf[5],mf[9]);
+//		const p3 zinv=p3(mf[2],mf[6],mf[10]);
+//		const p3n backplane(*this,zinv);//? viewfurst
+//		const float viewangle_rad=degtorad(viewangle_deg);
+//		const float scrdst=(wi/2)/tan(viewangle_rad)/zoom;//?
+//		const float ww=wi/4;
+//		const float hh=hi/4;
+//		p3 ptr(*this);
+//		ptr.transl(p3(zinv).neg().scale(scrdst));
+//		ptr.transl(p3(xinv).scale(ww));
+//		ptr.transl(p3(yinv).scale(hh));
+//		p3 pbr(*this);
+//		pbr.transl(p3(zinv).neg().scale(scrdst));
+//		pbr.transl(p3(xinv).scale(ww));
+//		pbr.transl(p3(yinv).scale(-hh));
+//		p3 pbl(*this);
+//		pbl.transl(p3(zinv).neg().scale(scrdst));
+//		pbl.transl(p3(xinv).scale(-ww));
+//		pbl.transl(p3(yinv).scale(-hh));
+//		p3 ptl(*this);
+//		ptl.transl(p3(zinv).neg().scale(scrdst));
+//		ptl.transl(p3(xinv).scale(-ww));
+//		ptl.transl(p3(yinv).scale( hh));
+//		//? farzplane
+//		p3 rightplanenml(*this,p3());
+//		rightplanenml.vecprod(pbr,ptr).norm();
+//		const p3n rightplane(*this,rightplanenml);
+//		p3 leftplanenml(*this,p3());
+//		leftplanenml.vecprod(ptl,pbl).norm();
+//		p3n leftplane(*this,leftplanenml);
+//		p3 topplanenml(*this,p3());
+//		topplanenml.vecprod(ptr,ptl).norm();
+//		const p3n topplane(*this,topplanenml);
+//		p3 btmplanenml(*this,p3());
+//		btmplanenml.vecprod(pbl,pbr).norm();
+//		const p3n btmplane(*this,btmplanenml);
+//		metrics::viewcull=metrics::globsrend=metrics::gridsculled=metrics::gridsrend=0;
+//		const p3n cullplanes[]{backplane,rightplane,leftplane,topplane,btmplane};
+//		const bvol bv(5,cullplanes);
+//		wold::get().gldraw();//? yisculled?
+//		wold::get().grd.culldraw(bv);//. rendleftrighti
+//		metrics::dtrend=clk::timerdt();
+//		if(dodrawhud){
+//			glMatrixMode(GL_MODELVIEW);
+//			glLoadIdentity();
+//			glMatrixMode(GL_PROJECTION);
+//			glLoadIdentity();
+//			glOrtho(0,wi,0,hi,0,1);
+//			glColor3b(0x7f,0x00,0x00);
+//			drawhud();
+//		}
+//		cout<<flush;
+//	}
+//	void gldraw(){
+//		glColor3f(1,0,0);
+//		glutSolidSphere(radius(),20,20);
+//	}
+	void handlekeys(){
+		if(hdlkeytg('1')){glob::drawboundingspheres=!glob::drawboundingspheres;}
+		if(hdlkeytg('2')){wold::get().drawaxis=!wold::get().drawaxis;}
+		if(hdlkeytg('3')){wold::get().drawgrid=!wold::get().drawgrid;}
+		if(hdlkeytg('4')){wold::get().hidezplane=!wold::get().hidezplane;}
+//		if(hdlkeytg('5')){wold::get().coldetgrid=!wold::get().coldetgrid;}
+		if(hdlkeytg('5')){drawshadows=!drawshadows;}
+		if(hdlkeytg('6')){viewpointlht=!viewpointlht;}
+		if(hdlkeydn(' ')){fire();}
+		if(hdlkeytg(9)){togglehud();}// tab
+		if(hdlkeytg('y')){zoom-=.1;}
+		if(hdlkeytg('h')){zoom+=.1;}
+		if(hdlkeytg('0')){togglefullscr();return;}
+		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
+		vehicle::handlekeys();
+	}
+	inline bool isgamemode()const{return gamemode;}
+	inline bool isfullscreen()const{return fullscr;}
+	inline int width()const{return wi;}
+	inline int height()const{return hi;}
+private:
+	inline windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
+	void togglefullscr(){
+//		if(gamemode)
+//			return;
+//		fullscr=!fullscr;
+//		if(fullscr){
+//			wiprv=wi;hiprv=hi;
+//			glutFullScreen();
+//			glutSetCursor(GLUT_CURSOR_NONE);
+//		}else{
+//			glutReshapeWindow(wiprv,hiprv);
+//			glutSetCursor(GLUT_CURSOR_INHERIT);
+//		}
+	}
+	void fire(){
+////		firereload+=dt(60);if(firereload>1)firereload=1;
+////		if(firereload<1)return;
+////		firereload-=1;
+//		const p3 lv=getmxv().zaxis().neg();
+//		const float r=.02f;
+//		const float v=.2f;
+//		p3 vv=p3(d).transl(p3(lv).scale(v));
+//		const float sprd=r/5;
+//		const float sx=rnd(-sprd,sprd);
+//		const float sy=rnd(-sprd,sprd);
+//		const float sz=rnd(-sprd,sprd);
+//		vv.transl(sx,sy,sz);
+////		globx&o=*new obball(wold::get(),lv.scale(radius()+r).transl(sx,sy,sz).transl(*this),r);
+//		glob&o=*new objects::ball(wold::get(),*this,r,4,1,1,0xffff0000);
+//		o.getd().set(vv);
+//		o.nd.set(vv);//?
+//		o.setblt(true);
+	}
+//	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
+////		const char*cp=text;
+////		glPushMatrix();
+////		glTranslatef(x,y,0);
+////		glScalef(scale,scale,0);
+////		glLineWidth(linewidth);
+////		for(;*cp;cp++)
+////			glutStrokeCharacter(GLUT_STROKE_ROMAN,*cp);
+////			glutStrokeString(GLUT_STROKE_MONO_ROMAN,text);
+////		glPopMatrix();
+//	}
+	void drawhud(){
+//		const int dy=hi>>5;int y=-dy;
+
+		timeval tv;gettimeofday(&tv,0);
+		const tm&t=*localtime(&tv.tv_sec);
+		ostringstream oss;
+//		oss<<setprecision(2)<<fixed;
+		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000<<"    t("<<wold::get().gett()<<")";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(1);
+		oss<<"p("<<*this<<") d("<<this->d<<") fi("<<this->fi<<") a("<<angle()<<") zoom("<<zoom<<")";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(2);
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") rays("<<metrics::rays<<")";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(4);
+		oss<<"upd("<<metrics::dtupd<<")s rayone("<<metrics::rayone<<")s draw("<<metrics::dtrend<<")s    "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendfpsest("<<(1/(metrics::dtrend+metrics::dtupd+metrics::dtcoldetgrd))<<")f/s";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(4);
+		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtcoldetgrd<<")s  "<<(((long long int)(metrics::globs/(wold::get().coldetgrid?metrics::dtcoldetgrd:metrics::dtcoldetbrute)))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+		oss<<"sphcolsdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<")"<<" mxrfsh("<<metrics::mwrfsh<<")"<<" mvmul("<<metrics::mpmul<<") mmmul("<<metrics::mmmul<<") ";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(4);
+		oss<<"gridscull("<<metrics::gridsculled<<") gridsrend("<<metrics::gridsrend<<") cullview("<<metrics::viewcull<<") globstorend("<<metrics::globsrend<<")";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(4);
+		oss<<"player("<<getplayer()<<") dtnet("<<metrics::dtnet<<")";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+//		oss<<setprecision(1);
+		oss<<"flappery("<<getflappery()<<") "<<"rocketry("<<getrocketry()<<") "<<"items("<<getitems()<<")";
+//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+//		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
+		sts.str("");
+	}
+};
+
+class windobot{
+public:
+	windo*wn;
+	void tick(){
+//		flf();
+		wn->onkeyb('j',true,0,0);
+//		wn->keydn('w',0,0);
+//		wn->onkeyb(' ',true,0,0);
+		wn->onkeyb('c',true,0,0);
+	}
+};
 
 int main(){
 	if(!glfwInit())return -1;
@@ -1052,11 +1664,16 @@ int main(){
 	vbo vb;
 	vb.glload();
 
-	glob&g=*new glob(wld);
+	glob&g=*new glob(wold::get());
 	g.dpos(p3(0,0,0),p3(0,0,10)).setvbo(vb);
 
 	glob&gg=*new glob(g);
-	gg.dpos(p3(0,.001f,0),p3(0,0,1)).setvbo(vb);
+	gg.dpos(p3(.001f,.001f,.001f),p3(0,0,1)).setvbo(vb);
+
+	windo&win=*new windo();
+	win.pos(p3(0,0,1),p3());
+	win.dpos(p3(0,0,0),p3(0,0,0));
+
 //	for(int i=0;i<32;i++){
 //		glob&g=*new glob(wld);
 //		g.pos(p3(),p3()).dpos(p3(),p3(0,0,360/(i+1))).setvbo(vb);
@@ -1064,35 +1681,18 @@ int main(){
 
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 
-	tmr t,t1,t2;
 	long long frm=0;
-//	float a,da=pi;
+	tmr t,t1,t2;
 	while(glfwGetWindowParam(GLFW_OPENED)){
-//		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
+		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
 		frm++;
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
-//		wld.getmxmw().togl(mx);
-//		glUniformMatrix4fv(shader::umxmw,1,false,mx);
-
-		//camera
-		m3 mwv;
-		mwv.ident();
-		mwv.mw(p3(0,0,-1),p3());
-		GLfloat mx[16];
-		mwv.togl(mx);
-//		const GLfloat mxwv[]={1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-1,1};
-		glUniformMatrix4fv(shader::umxwv,1,false,mx);
-
-		cout<<g<<endl;
-		wld.gldraw();
-
+		win.drawframe();
 		clk::dt=t2.dt();
 		clk::tk++;
-		wld.dotck();
-
-		cout<<frm<<" "<<t.dt()<<" "<<dt()<<endl;
+		wold::get().dotck();
+		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<endl;
 		glfwSwapBuffers();
+		metrics::globsrend=0;
 	}
 	cout<<frm/t1.dt()<<endl;
 	return 0;
