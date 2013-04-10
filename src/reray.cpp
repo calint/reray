@@ -617,6 +617,8 @@ namespace dbox{
 		list<glob*>chsrm;
 		list<glob*>chsadd;
 		int bits;
+//		long long ptmxupdtk;//tk when last used
+		long long mxmwtk;
 		m3 mxmw;
 		p3 mxmwpos;
 		p3 mxmwagl;
@@ -648,7 +650,7 @@ namespace dbox{
 		glob&dpos(const p3&dpdt,const p3&dadt){nd.set(dpdt);da.set(dadt);return*this;}
 
 		glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
-			p3(p),id(metrics::globs++),g(g),a(a),bits(1),rmed(false),
+			p3(p),id(metrics::globs++),g(g),a(a),bits(1),mxmwtk(0),rmed(false),
 			 r(r),bf(bounciness),m(density_gcm3*4/3*pi*r*r*r),
 			 tk(0),culldrawtk(0),d(p3()),da(p3()),f(p3()),fi(p3()),pp(p),ppsaved(false),
 			 vb(0),
@@ -861,16 +863,16 @@ namespace dbox{
 		bool refreshmxmw(){
 			if(!&g)
 				return false;
-//			g.refreshmxmw();
-//			bool refrsh=g.refreshmxmw();
-//			if(!refrsh)
+//			if(g.mxmwtk==ptmxmwtk){
 //				if(mxmwpos==*this&&mxmwagl==a)
 //					return false;
+//			}
 			metrics::mwrfsh++;
 			mxmwagl=a;
 			mxmwpos=*this;
 			mxmw.mw(mxmwpos,mxmwagl);//? cache
 			mxmw.mul(g.mxmw);//? g.mxmw ident skip
+			mxmwtk=clk::tk;
 			return true;
 		}
 	};
@@ -1682,7 +1684,7 @@ int main(){
 
 	glob*gg=new glob(g);
 	gg->setvbo(vb);
-	gg->pos(p3(0,.8f,0),p3());
+	gg->pos(p3(1,0,0),p3());
 	gg->dpos(p3(0,0,0),p3(0,0,10));
 
 	windo&win=*new windo();
