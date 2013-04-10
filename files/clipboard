@@ -1,0 +1,71 @@
+//	m3&settransposed(const GLfloat m[16]){//?
+//		xx=m[ 0];yx=m[ 1];zx=m[ 2];ox=m[ 3];
+//		xy=m[ 4];yy=m[ 5];zy=m[ 6];oy=m[ 7];
+//		xz=m[ 8];yz=m[ 9];zz=m[10];oz=m[11];
+//		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
+//		return*this;
+//	}
+
+
+//	m3&transl(const p3&p){
+//		const float x=p.getx();
+//		const float y=p.gety();
+//		const float z=p.getz();
+//		ox=xx*x+yx*y+zx*z+ox;
+//		oy=xy*x+yy*y+zy*z+oy;
+//		oz=xz*x+yz*y+zz*z+oz;
+//		return*this;
+//	}
+
+
+
+//	m3&mult(const m3&m){
+//		metrics::mmmul++;
+//		float nxx=xx*m.xx+yx*m.xy+zx*m.xz+ox*m.xo;
+//		float nyx=xx*m.yx+yx*m.yy+zx*m.yz+ox*m.yo;
+//		float nzx=xx*m.zx+yx*m.zy+zx*m.zz+ox*m.zo;
+//		float nox=xx*m.ox+yx*m.oy+zx*m.oz+ox*m.oo;
+//
+//		float nxy=xy*m.xx+yy*m.xy+zy*m.xz+oy*m.xo;
+//		float nyy=xy*m.yx+yy*m.yy+zy*m.yz+oy*m.yo;
+//		float nzy=xy*m.zx+yy*m.zy+zy*m.zz+oy*m.zo;
+//		float noy=xy*m.ox+yy*m.oy+zy*m.oz+oy*m.oo;
+//
+//		float nxz=xz*m.xx+yz*m.xy+zz*m.xz+oz*m.xo;
+//		float nyz=xz*m.yx+yz*m.yy+zz*m.yz+oz*m.yo;
+//		float nzz=xz*m.zx+yz*m.zy+zz*m.zz+oz*m.zo;
+//		float noz=xz*m.ox+yz*m.oy+zz*m.oz+oz*m.oo;
+//
+//		float nxo=xo*m.xx+yo*m.xy+zo*m.xz+oo*m.xo;
+//		float nyo=xo*m.yx+yo*m.yy+zo*m.yz+oo*m.yo;
+//		float nzo=xo*m.zx+yo*m.zy+zo*m.zz+oo*m.zo;
+//		float noo=xo*m.ox+yo*m.oy+zo*m.oz+oo*m.oo;
+//
+//		xx=nxx;yx=nyx;zx=nzx;ox=nox;
+//		xy=nxy;yy=nyy;zy=nzy;oy=noy;
+//		xz=nxz;yz=nyz;zz=nzz;oz=noz;
+//		xo=nxo;yo=nyo;zo=nzo;oo=noo;
+//
+//		return*this;
+//	}
+//	m3&set(const GLfloat m[16]){
+//		xx=m[ 0];yx=m[ 1];zx=m[ 2];ox=m[ 3];
+//		xy=m[ 4];yy=m[ 5];zy=m[ 6];oy=m[ 7];
+//		xz=m[ 8];yz=m[ 9];zz=m[10];oz=m[11];
+//		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
+//		return*this;
+//	}
+//	m3 inv()const{
+//		GLfloat m[16];
+//		m[0 ]=xx;m[ 1]=yx;m[ 2]=zx;m[3]=ox;
+//		m[4 ]=xy;m[ 5]=yy;m[ 6]=zy;m[7]=oy;
+//		m[8 ]=xz;m[ 9]=yz;m[10]=zz;m[11]=oz;
+//		m[12]=xo;m[13]=yo;m[14]=zo;m[15]=oo;
+//
+//		GLfloat mout[16];
+//		gluInvertMatrix(m,mout);
+//
+//		m3 mx;
+//		mx.set(mout);
+//		return mx;
+//	}
