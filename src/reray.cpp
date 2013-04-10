@@ -617,7 +617,7 @@ namespace dbox{
 		list<glob*>chsrm;
 		list<glob*>chsadd;
 		int bits;
-//		long long ptmxupdtk;//tk when last used
+		long long ptmxupdtk;
 		long long mxmwtk;
 		m3 mxmw;
 		p3 mxmwpos;
@@ -650,7 +650,7 @@ namespace dbox{
 		glob&dpos(const p3&dpdt,const p3&dadt){nd.set(dpdt);da.set(dadt);return*this;}
 
 		glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
-			p3(p),id(metrics::globs++),g(g),a(a),bits(1),mxmwtk(0),rmed(false),
+			p3(p),id(metrics::globs++),g(g),a(a),bits(1),ptmxupdtk(-1),mxmwtk(0),rmed(false),
 			 r(r),bf(bounciness),m(density_gcm3*4/3*pi*r*r*r),
 			 tk(0),culldrawtk(0),d(p3()),da(p3()),f(p3()),fi(p3()),pp(p),ppsaved(false),
 			 vb(0),
@@ -860,20 +860,21 @@ namespace dbox{
 			mxmw.trnsf(p,d);//? ifidentskip
 			return d;
 		}
-		bool refreshmxmw(){
-			if(!&g)
-				return false;
-//			if(g.mxmwtk==ptmxmwtk){
-//				if(mxmwpos==*this&&mxmwagl==a)
-//					return false;
-//			}
+		void refreshmxmw(){
+			if(!&g)//skip root object with ortho norm xyzw
+				return;
+			if(g.mxmwtk==ptmxupdtk){
+				if(mxmwpos==*this&&mxmwagl==a)
+					return;
+			}
 			metrics::mwrfsh++;
 			mxmwagl=a;
 			mxmwpos=*this;
 			mxmw.mw(mxmwpos,mxmwagl);//? cache
-			mxmw.mul(g.mxmw);//? g.mxmw ident skip
+			mxmw.mul(g.getmxmw());//? g.mxmw ident skip
 			mxmwtk=clk::tk;
-			return true;
+			ptmxupdtk=g.mxmwtk;
+			return;
 		}
 	};
 	bool glob::drawboundingspheres=true;
@@ -1686,6 +1687,11 @@ int main(){
 	gg->setvbo(vb);
 	gg->pos(p3(1,0,0),p3());
 	gg->dpos(p3(0,0,0),p3(0,0,10));
+
+	glob*gg2=new glob(*gg);
+	gg2->setvbo(vb);
+	gg2->pos(p3(-1,0,0),p3());
+//	gg2->dpos(p3(0,0,0),p3(0,0,-10));
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
