@@ -1032,14 +1032,14 @@ namespace dbox{
 	};
 
 	class wold:public glob{
-		static wold wd;
+//		static wold wd;
 		float t=0;
 	public:
 		wold(const float r=15):
 			glob(*(glob*)0,p3(),p3(),r),
 			t(0),
 			grd(r),
-			kb(0),
+//			kb(0),
 			drawaxis(false),
 			drawgrid(true),
 			hidezplane(false),
@@ -1047,13 +1047,13 @@ namespace dbox{
 			coldetgrid(true)
 		{}
 		grid grd;
-		keyb*kb;
+//		keyb*kb;
 		bool drawaxis,drawgrid,hidezplane,coldetbrute,coldetgrid;
-		inline static wold&get(){return wd;}
-		inline float gett()const{return t;}
-		inline void applyg(p3&dd)const{dd.transl(0,-9.82f,0);}
-		void glload(){}
-		keyb&keyb()const{return*kb;}
+//		inline static wold&get(){return wd;}
+//		inline float gett()const{return t;}
+//		inline void applyg(p3&dd)const{dd.transl(0,-9.82f,0);}
+//		void glload(){}
+//		keyb&keyb()const{return*kb;}
 	//	void gldraw(){
 	////		flf();l("draw world");
 	////		glCullFace(GL_FRONT);
@@ -1141,7 +1141,7 @@ namespace dbox{
 	//		metrics::dtcoldetbrute=clk::timerdt();
 		}
 	};
-	wold wold::wd;
+	static wold wd;
 	//static wold wld;
 	//static glob wld(*(glob*)0);
 
@@ -1324,7 +1324,7 @@ namespace dbox{
 		float firereload;
 		tmr drawtmr;
 	public:
-		windo(glob&g=wold::get(),const p3&p=p3(),const p3&a=p3(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):
+		windo(glob&g=wd,const p3&p=p3(),const p3&a=p3(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):
 			vehicle(g,p,a,r,.25f),
 			dodrawhud(false),
 			gamemode(false),
@@ -1355,7 +1355,7 @@ namespace dbox{
 			mwv.togl(mx);
 			glUniformMatrix4fv(shader::umxwv,1,false,mx);
 			const bvol bv(0,0);
-			wold::get().grd.culldraw(bv);//? grid
+			wd.grd.culldraw(bv);//? grid
 		}
 	//	void drawframe(){
 	//		const float freq=drawtmr.dt();
@@ -1514,9 +1514,9 @@ namespace dbox{
 	//	}
 		void handlekeys(){
 			if(hdlkeytg('1')){glob::drawboundingspheres=!glob::drawboundingspheres;}
-			if(hdlkeytg('2')){wold::get().drawaxis=!wold::get().drawaxis;}
-			if(hdlkeytg('3')){wold::get().drawgrid=!wold::get().drawgrid;}
-			if(hdlkeytg('4')){wold::get().hidezplane=!wold::get().hidezplane;}
+			if(hdlkeytg('2')){wd.drawaxis=!wd.drawaxis;}
+			if(hdlkeytg('3')){wd.drawgrid=!wd.drawgrid;}
+			if(hdlkeytg('4')){wd.hidezplane=!wd.hidezplane;}
 	//		if(hdlkeytg('5')){wold::get().coldetgrid=!wold::get().coldetgrid;}
 			if(hdlkeytg('5')){drawshadows=!drawshadows;}
 			if(hdlkeytg('6')){viewpointlht=!viewpointlht;}
@@ -1580,11 +1580,11 @@ namespace dbox{
 		void drawhud(){
 	//		const int dy=hi>>5;int y=-dy;
 
-			timeval tv;gettimeofday(&tv,0);
-			const tm&t=*localtime(&tv.tv_sec);
+//			timeval tv;gettimeofday(&tv,0);
+//			const tm&t=*localtime(&tv.tv_sec);
 			ostringstream oss;
 	//		oss<<setprecision(2)<<fixed;
-			oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000<<"    t("<<wold::get().gett()<<")";
+//			oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000<<"    t("<<wold::get().gett()<<")";
 	//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 			oss.str("");
@@ -1604,7 +1604,7 @@ namespace dbox{
 
 			oss.str("");
 	//		oss<<setprecision(4);
-			oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtcoldetgrd<<")s  "<<(((long long int)(metrics::globs/(wold::get().coldetgrid?metrics::dtcoldetgrd:metrics::dtcoldetbrute)))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
+//			oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtcoldetgrd<<")s  "<<(((long long int)(metrics::globs/(wold::get().coldetgrid?metrics::dtcoldetgrd:metrics::dtcoldetbrute)))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
 	//		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 			oss.str("");
@@ -1647,6 +1647,13 @@ namespace dbox{
 
 }
 
+void GLFWCALL WindowResize(const int width,const int height){
+	cout<<"window resize "<<width<<" x "<<height<<endl;
+}
+void GLFWCALL Keyboard(const int key,const int pressed){
+	cout<<"keyboard key "<<key<<"   "<<pressed<<endl;
+}
+
 using namespace dbox;
 int main(){
 	if(!glfwInit())return -1;
@@ -1654,11 +1661,13 @@ int main(){
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR,2);
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
-	if(!glfwOpenWindow(1024,512,8,8,8,8,32,0,GLFW_WINDOW))return -1;
+	if(!glfwOpenWindow(512,512,8,8,8,8,32,0,GLFW_WINDOW))return -1;
 	cout<<"  version: "<<glGetString(GL_VERSION)<<endl;
 	shader::init();
 	glfwSwapInterval(0);
 	glfwEnable(GLFW_STICKY_KEYS);
+	glfwSetWindowSizeCallback(WindowResize);
+	glfwSetKeyCallback(Keyboard);
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after init";return -1;}
 
 	//init vbos
@@ -1666,20 +1675,20 @@ int main(){
 	vb.glload();
 
 
-	GLFWimage img;
-	const char*pth="texture1.tga";
-	const int rs=glfwReadImage(pth,&img,0);
-	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
-	glfwFreeImage(&img);
+//	GLFWimage img;
+//	const char*pth="texture1.tga";
+//	const int rs=glfwReadImage(pth,&img,0);
+//	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
+//	glfwFreeImage(&img);
 
-	glob&g=*new glob(wold::get());
+	glob&g=*new glob(wd);
 	g.setvbo(vb);
 	g.dpos(p3(0,0,0),p3(0,0,10));
 
 	glob*gg=new glob(g);
 	gg->setvbo(vb);
-	gg->pos(p3(.5f,0,0),p3());
-	gg->dpos(p3(0,0,0),p3());
+	gg->pos(p3(0,.5f,0),p3());
+//	gg->dpos(p3(0,0,0),p3(0,0,10));
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
@@ -1694,7 +1703,7 @@ int main(){
 		clk::tk++;
 		win.drawframe();
 		clk::dt=t2.dt();
-		wold::get().dotck();
+		wd.dotck();
 		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<endl;
 		glfwSwapBuffers();
 		metrics::globsrend=0;
