@@ -3,22 +3,13 @@ using namespace std;
 #define GLFW_INCLUDE_GL3
 #define GLFW_NO_GLU
 #include "../glfw/glfw.h"
-#include<sys/time.h>
 
-class tmr{
-	struct timeval t0;
-public:
-	tmr(){restart();}
-	void restart(){gettimeofday(&t0,NULL);}
-	float dt(){
-	    struct timeval tv;
-	    gettimeofday(&tv,NULL);
-		const time_t diff_s=tv.tv_sec-t0.tv_sec;
-		const int diff_us=tv.tv_usec-t0.tv_usec;
-		t0=tv;
-		return (float)diff_s+diff_us/1000000.f;
-	}
-};
+#define flf()l("···",__FILE__,__LINE__,__FUNCTION__);
+static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
+
+#include<cmath>
+#include <list>
+
 
 #include<sstream>
 namespace dbox{
@@ -65,200 +56,207 @@ namespace dbox{
 	const float degtoradp=pi/180;
 	inline float degtorad(const float deg=1){return deg*degtoradp;}
 	ostringstream sts;
-}
-using namespace dbox;
 
+	#include<sys/time.h>
+	class tmr{
+		struct timeval t0;
+	public:
+		tmr(){restart();}
+		void restart(){gettimeofday(&t0,NULL);}
+		float dt(){
+			struct timeval tv;
+			gettimeofday(&tv,NULL);
+			const time_t diff_s=tv.tv_sec-t0.tv_sec;
+			const int diff_us=tv.tv_usec-t0.tv_usec;
+			t0=tv;
+			return (float)diff_s+diff_us/1000000.f;
+		}
+	};
+	#include<execinfo.h>
+	class signl{
+		const int i;
+		const char*s;
+	public:
+		signl(const int i=0,const char*s="signal"):i(i),s(s){
+			cerr<<" ••• signl "<<i<<" · "<<s<<endl;
+			const int nva=10;
+			void*va[nva];
+			int n=backtrace(va,nva);
+			backtrace_symbols_fd(va,n,1);
+		}
+		inline int num()const{return i;}
+		inline const char* str()const{return s;}
+	};
 
-#define flf()l("···",__FILE__,__LINE__,__FUNCTION__);
-static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
-
-#include<execinfo.h>
-class signl{
-	const int i;
-	const char*s;
-public:
-	signl(const int i=0,const char*s="signal"):i(i),s(s){
-		cerr<<" ••• signl "<<i<<" · "<<s<<endl;
-		const int nva=10;
-		void*va[nva];
-		int n=backtrace(va,nva);
-		backtrace_symbols_fd(va,n,1);
-	}
-	inline int num()const{return i;}
-	inline const char* str()const{return s;}
-};
-
-#include<errno.h>
-#include<sys/socket.h>
-#include<sys/types.h>
-#include<netdb.h>
-namespace net{
-	const int nplayers=2;
-	const int nkeys=32;
-	const int keyslen=nplayers*nkeys;
-	const char*host="127.0.0.1";
-	const char*port="8085";
-//	const char*playername="noname";
-	bool sockio=false;
-
-	char keys[nplayers][nkeys];
-	int player=0;
-	int sockfd=0;
-	struct addrinfo*ai=0;
-	void sendkeys(){
-		const ssize_t bytes_sent=send(sockfd,keys[player],nkeys,0);
-		//flf();l("sent keys for player ")<<player<<"  bytessent("<<bytes_sent<<endl;
-		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;throw signl(1,"sendkeys");}
-	}
-	void print(){
-		cout<<hex;
-		for(int i=0;i<nplayers;i++){
-			cout<<"k["<<i<<"](";
-			for(int j=0;j<nkeys;j++){
-				if(j>0)cout<<" ";
-				cout<<int(keys[i][j]);
+	namespace shader{
+		GLuint prog=0;
+		GLint umxmw=0;
+		GLint umxwv=0;
+		GLint udopersp=0;
+		GLint urendzbuf=0;
+		GLint utx=0;
+		void init(){
+			const GLuint vtxshdr=glCreateShader(GL_VERTEX_SHADER);
+	//		const GLchar*vtxshdrsrc[]={"void main(){gl_TexCoord[0]=gl_TextureMatrix[0]*gl_ModelViewMatrix*gl_Vertex;gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;}"};
+	//		const GLchar*vtxshdrsrc[]={"varying vec3 vnml;void main(){gl_TexCoord[0]=gl_TextureMatrix[0]*gl_ModelViewMatrix*gl_Vertex;gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;vnml=normalize(gl_NormalMatrix*gl_Normal);}"};
+	//		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_Vertex;}"};
+	//		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;}"};
+	//		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;gl_TexCoord[2]=gl_TextureMatrix[2]*gl_ModelViewMatrix*gl_Vertex;}"};
+	//		const GLchar*vtxshdrsrc[]={"varying vec3 vnml;void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;gl_TexCoord[2]=gl_TextureMatrix[2]*gl_ModelViewMatrix*gl_Vertex;vnml=normalize(gl_NormalMatrix*gl_Normal);}"};
+	//		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=pv;}"};
+			const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=pv;}"};
+	//		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=vec4(in_pos,1);}"};
+			const GLint vtxshdrsrclen[]={GLint(strlen(vtxshdrsrc[0]))};
+			glShaderSource(vtxshdr,1,vtxshdrsrc,vtxshdrsrclen);
+			glCompileShader(vtxshdr);
+			GLint sts;
+			glGetShaderiv(vtxshdr,GL_COMPILE_STATUS,&sts);
+			const int n=4*1024;
+			char buf[n];
+			GLsizei nchs;
+			if(!sts){
+				glGetShaderInfoLog(vtxshdr,n,&nchs,buf);
+				cerr<<"vertex shader did not compile"<<endl<<buf;
+				throw signl();
 			}
-			cout<<")"<<endl;
-		}
-
-	}
-	void reckeys(){
-		const ssize_t reclen=recv(sockfd,keys,keyslen,0);
-		if(reclen==0){flf();l("closed")<<endl;exit(1);}
-		if(reclen==-1){flf();l(strerror(errno))<<endl;exit(2);}
-		if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
-//		print();
-	}
-	void open(){
-		flf();l()<<"connect "<<host<<":"<<port<<endl;
-
-		struct addrinfo hints;
-		memset(&hints,0,sizeof hints);
-		hints.ai_family=AF_UNSPEC;
-		hints.ai_socktype=SOCK_STREAM;
-		if(getaddrinfo(host,port,&hints,&ai)){flf();l(strerror(errno))<<endl;throw signl();}
-		sockfd=socket(ai->ai_family,ai->ai_socktype,ai->ai_protocol);
-		if(sockfd==-1){flf();l(strerror(errno))<<endl;throw signl();}
-	//	flf();l()<<"socket "<<sockfd<<"  errno("<<errno<<")"<<endl;
-		if(connect(sockfd,ai->ai_addr,ai->ai_addrlen)){flf();l(strerror(errno))<<endl;throw signl();}
-		flf();l("connected")<<endl;
-		const char c[]="0123456789abcdef";
-		char playerid[33];
-		srand((unsigned int)time(NULL));
-		for(int i=0;i<nkeys;i++){
-			playerid[i]=c[(int)rand()%16];
-		}
-		playerid[32]=0;
-		flf();cout<<"  keys:"<<sizeof keys<<"\n";
-		flf();cout<<"  player id: "<<playerid<<"\n";
-		memset(keys,0,sizeof keys);
-		if(!sockio){
-			strncpy(keys[player],playerid,nkeys);
-		}else{//?
-			string s="get /gloxnet .\r\ncookie:i=";
-			s.append(playerid).append("\r\n\r\n");
-			const char*sc=s.c_str();
-			flf();l(sc)<<endl;
-			const size_t sclen=s.length();
-			flf();l()<<sclen<<endl;
-			const ssize_t bytes_sent=send(sockfd,sc,(size_t)sclen,0);
-			if(bytes_sent!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(1,"sockio");}
-//			const ssize_t bytes_sent2=send(sockfd,sc,(size_t)sclen,0);
-//			if(bytes_sent2!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(2,"sockio");}
-		}
-		sendkeys();
-
-		flf();l("waiting for other players.")<<endl;
-		reckeys();
-		flf();l("all players connected.")<<endl;
-		int i=0;
-		for(auto s:keys){
-			if(!strcmp(playerid,s)){
-				player=i;
-				break;
+			const GLuint frgshdr=glCreateShader(GL_FRAGMENT_SHADER);
+	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;void main(){vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[0]);float la=shad.z<gl_TexCoord[0].z/gl_TexCoord[0].w?.5:.7;gl_FragColor=la*gl_Color;}"};
+	//		const GLchar*frgshdrsrc[]={"varying vec3 vnml;uniform sampler2D ushadow0;void main(){vec4 shado;shado=texture2DProj(ushadow0,gl_TexCoord[0]);float la=shado.z<gl_TexCoord[0].z/gl_TexCoord[0].w?0.:.2;float wa=gl_FragCoord.w;vec3 lhta=vec3(1,0,0);float ln=dot(vnml,lhta);gl_FragColor=clamp(la*.5+wa*.5+ln*.2,0.,1.)*gl_Color;}"};
+	//		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);gl_FragColor=tex;}"};
+	//		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;uniform sampler2D ushad;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?-.2:0.;gl_FragColor=la*vec4(1,1,1,1)+tex+gl_Color;}"};
+	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);gl_FragColor=la*(tex+ln+gl_Color);}"};
+	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);float wa=gl_FragCoord.w;gl_FragColor=la*(ln*.2+wa*.5+tex+gl_Color);}"};
+			const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba;}"};
+			const GLint frgshdrsrclen[]={GLint(strlen(frgshdrsrc[0]))};
+			glShaderSource(frgshdr,1,frgshdrsrc,frgshdrsrclen);
+			glCompileShader(frgshdr);
+			glGetShaderiv(frgshdr,GL_COMPILE_STATUS,&sts);
+			if(!sts){
+				glGetShaderInfoLog(frgshdr,n,&nchs,buf);
+				cerr<<"frag shader did not compile"<<endl<<buf<<endl;
+				throw signl();
 			}
-			i++;
+			prog=glCreateProgram();
+			glAttachShader(prog,vtxshdr);
+			glAttachShader(prog,frgshdr);
+			glLinkProgram(prog);
+			glGetProgramiv(prog,GL_LINK_STATUS,&sts);
+			if(!sts){
+				glGetProgramInfoLog(prog,n,&nchs,buf);
+				cerr<<"program did not link"<<endl<<buf<<endl;
+				throw signl();
+			}
+			if((umxmw=glGetUniformLocation(prog,"umxmw"))==-1)throw signl(0,"umxmw not found");
+			if((umxwv=glGetUniformLocation(prog,"umxwv"))==-1)throw signl(0,"umxwv not found");
+			if((udopersp=glGetUniformLocation(prog,"udopersp"))==-1)throw signl(0,"udopersp not found");
+//			if((urendzbuf=glGetUniformLocation(prog,"urendzbuf"))==-1)throw signl(0,"urendzbuf not found");
+//			if((utx=glGetUniformLocation(prog,"utx"))==-1)throw signl(0,"utx not found");
+			glUseProgram(prog);
+
+			if(glGetError())throw signl(0,"shader::init");
 		}
-		flf();l("u r player #")<<player<<endl;
-		print();
-		memset(keys,0,sizeof keys);
 	}
-//	void stop(){
-//		if(sockfd&&close(sockfd)){flf();l(strerror(errno))<<endl;}
-//		if(ai)freeaddrinfo(ai);
-//	}
-}
 
-namespace shader{
-	GLuint prog=0;
-	GLint umxmw=0;
-	GLint umxwv=0;
-	GLint udopersp=0;
-	GLint urendzbuf=0;
-	GLint utx=0;
-	void init(){
-		const GLuint vtxshdr=glCreateShader(GL_VERTEX_SHADER);
-//		const GLchar*vtxshdrsrc[]={"void main(){gl_TexCoord[0]=gl_TextureMatrix[0]*gl_ModelViewMatrix*gl_Vertex;gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;}"};
-//		const GLchar*vtxshdrsrc[]={"varying vec3 vnml;void main(){gl_TexCoord[0]=gl_TextureMatrix[0]*gl_ModelViewMatrix*gl_Vertex;gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;vnml=normalize(gl_NormalMatrix*gl_Normal);}"};
-//		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_Vertex;}"};
-//		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;}"};
-//		const GLchar*vtxshdrsrc[]={"void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;gl_TexCoord[2]=gl_TextureMatrix[2]*gl_ModelViewMatrix*gl_Vertex;}"};
-//		const GLchar*vtxshdrsrc[]={"varying vec3 vnml;void main(){gl_Position=gl_ModelViewProjectionMatrix*gl_Vertex;gl_FrontColor=gl_Color;gl_TexCoord[1]=gl_MultiTexCoord1;gl_TexCoord[2]=gl_TextureMatrix[2]*gl_ModelViewMatrix*gl_Vertex;vnml=normalize(gl_NormalMatrix*gl_Normal);}"};
-//		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=pv;}"};
-		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=pv;}"};
-//		const GLchar*vtxshdrsrc[]={"#version 150 core\nuniform mat4 umxmw;uniform mat4 umxwv;uniform bool udopersp=true;in vec3 in_pos;in vec4 in_rgba;in vec2 in_txc;out vec4 rgba;out vec2 txcoord;void main(){rgba=in_rgba;txcoord=in_txc;vec4 pw=umxmw*vec4(in_pos,1);vec4 pv=umxwv*pw;if(udopersp){pv.w=-pv.z;pv.z*=pv.z;}else{pv.z=-pv.z;}gl_Position=vec4(in_pos,1);}"};
-		const GLint vtxshdrsrclen[]={GLint(strlen(vtxshdrsrc[0]))};
-		glShaderSource(vtxshdr,1,vtxshdrsrc,vtxshdrsrclen);
-		glCompileShader(vtxshdr);
-		GLint sts;
-		glGetShaderiv(vtxshdr,GL_COMPILE_STATUS,&sts);
-		const int n=4*1024;
-		char buf[n];
-		GLsizei nchs;
-		if(!sts){
-			glGetShaderInfoLog(vtxshdr,n,&nchs,buf);
-			cerr<<"vertex shader did not compile"<<endl<<buf;
-			throw signl();
-		}
-		const GLuint frgshdr=glCreateShader(GL_FRAGMENT_SHADER);
-//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;void main(){vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[0]);float la=shad.z<gl_TexCoord[0].z/gl_TexCoord[0].w?.5:.7;gl_FragColor=la*gl_Color;}"};
-//		const GLchar*frgshdrsrc[]={"varying vec3 vnml;uniform sampler2D ushadow0;void main(){vec4 shado;shado=texture2DProj(ushadow0,gl_TexCoord[0]);float la=shado.z<gl_TexCoord[0].z/gl_TexCoord[0].w?0.:.2;float wa=gl_FragCoord.w;vec3 lhta=vec3(1,0,0);float ln=dot(vnml,lhta);gl_FragColor=clamp(la*.5+wa*.5+ln*.2,0.,1.)*gl_Color;}"};
-//		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);gl_FragColor=tex;}"};
-//		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;uniform sampler2D ushad;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?-.2:0.;gl_FragColor=la*vec4(1,1,1,1)+tex+gl_Color;}"};
-//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);gl_FragColor=la*(tex+ln+gl_Color);}"};
-//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);float wa=gl_FragCoord.w;gl_FragColor=la*(ln*.2+wa*.5+tex+gl_Color);}"};
-		const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba;}"};
-		const GLint frgshdrsrclen[]={GLint(strlen(frgshdrsrc[0]))};
-		glShaderSource(frgshdr,1,frgshdrsrc,frgshdrsrclen);
-		glCompileShader(frgshdr);
-		glGetShaderiv(frgshdr,GL_COMPILE_STATUS,&sts);
-		if(!sts){
-			glGetShaderInfoLog(frgshdr,n,&nchs,buf);
-			cerr<<"frag shader did not compile"<<endl<<buf<<endl;
-			throw signl();
-		}
-		prog=glCreateProgram();
-		glAttachShader(prog,vtxshdr);
-		glAttachShader(prog,frgshdr);
-		glLinkProgram(prog);
-		glGetProgramiv(prog,GL_LINK_STATUS,&sts);
-		if(!sts){
-			glGetProgramInfoLog(prog,n,&nchs,buf);
-			cerr<<"program did not link"<<endl<<buf<<endl;
-			throw signl();
-		}
-		if((umxmw=glGetUniformLocation(prog,"umxmw"))==-1)throw signl(0,"umxmw not found");
-//		if((umxwv=glGetUniformLocation(prog,"umxwv"))==-1)throw signl(0,"umxwv not found");
-//		if((udopersp=glGetUniformLocation(prog,"udopersp"))==-1)throw signl(0,"udopersp not found");
-//		if((urendzbuf=glGetUniformLocation(prog,"urendzbuf"))==-1)throw signl(0,"urendzbuf not found");
-//		if((utx=glGetUniformLocation(prog,"utx"))==-1)throw signl(0,"utx not found");
-		glUseProgram(prog);
+	#include<errno.h>
+	#include<sys/socket.h>
+	#include<sys/types.h>
+	#include<netdb.h>
+	namespace net{
+		const int nplayers=2;
+		const int nkeys=32;
+		const int keyslen=nplayers*nkeys;
+		const char*host="127.0.0.1";
+		const char*port="8085";
+	//	const char*playername="noname";
+		bool sockio=false;
 
-		if(glGetError())throw signl(0,"shader::init");
+		char keys[nplayers][nkeys];
+		int player=0;
+		int sockfd=0;
+		struct addrinfo*ai=0;
+		void sendkeys(){
+			const ssize_t bytes_sent=send(sockfd,keys[player],nkeys,0);
+			//flf();l("sent keys for player ")<<player<<"  bytessent("<<bytes_sent<<endl;
+			if(bytes_sent==-1){flf();l(strerror(errno))<<endl;throw signl(1,"sendkeys");}
+		}
+		void print(){
+			cout<<hex;
+			for(int i=0;i<nplayers;i++){
+				cout<<"k["<<i<<"](";
+				for(int j=0;j<nkeys;j++){
+					if(j>0)cout<<" ";
+					cout<<int(keys[i][j]);
+				}
+				cout<<")"<<endl;
+			}
+
+		}
+		void reckeys(){
+			const ssize_t reclen=recv(sockfd,keys,keyslen,0);
+			if(reclen==0){flf();l("closed")<<endl;exit(1);}
+			if(reclen==-1){flf();l(strerror(errno))<<endl;exit(2);}
+			if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
+	//		print();
+		}
+		void open(){
+			flf();l()<<"connect "<<host<<":"<<port<<endl;
+
+			struct addrinfo hints;
+			memset(&hints,0,sizeof hints);
+			hints.ai_family=AF_UNSPEC;
+			hints.ai_socktype=SOCK_STREAM;
+			if(getaddrinfo(host,port,&hints,&ai)){flf();l(strerror(errno))<<endl;throw signl();}
+			sockfd=socket(ai->ai_family,ai->ai_socktype,ai->ai_protocol);
+			if(sockfd==-1){flf();l(strerror(errno))<<endl;throw signl();}
+		//	flf();l()<<"socket "<<sockfd<<"  errno("<<errno<<")"<<endl;
+			if(connect(sockfd,ai->ai_addr,ai->ai_addrlen)){flf();l(strerror(errno))<<endl;throw signl();}
+			flf();l("connected")<<endl;
+			const char c[]="0123456789abcdef";
+			char playerid[33];
+			srand((unsigned int)time(NULL));
+			for(int i=0;i<nkeys;i++){
+				playerid[i]=c[(int)rand()%16];
+			}
+			playerid[32]=0;
+			flf();cout<<"  keys:"<<sizeof keys<<"\n";
+			flf();cout<<"  player id: "<<playerid<<"\n";
+			memset(keys,0,sizeof keys);
+			if(!sockio){
+				strncpy(keys[player],playerid,nkeys);
+			}else{//?
+				string s="get /gloxnet .\r\ncookie:i=";
+				s.append(playerid).append("\r\n\r\n");
+				const char*sc=s.c_str();
+				flf();l(sc)<<endl;
+				const size_t sclen=s.length();
+				flf();l()<<sclen<<endl;
+				const ssize_t bytes_sent=send(sockfd,sc,(size_t)sclen,0);
+				if(bytes_sent!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(1,"sockio");}
+	//			const ssize_t bytes_sent2=send(sockfd,sc,(size_t)sclen,0);
+	//			if(bytes_sent2!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(2,"sockio");}
+			}
+			sendkeys();
+
+			flf();l("waiting for other players.")<<endl;
+			reckeys();
+			flf();l("all players connected.")<<endl;
+			int i=0;
+			for(auto s:keys){
+				if(!strcmp(playerid,s)){
+					player=i;
+					break;
+				}
+				i++;
+			}
+			flf();l("u r player #")<<player<<endl;
+			print();
+			memset(keys,0,sizeof keys);
+		}
+		//	void stop(){
+		//		if(sockfd&&close(sockfd)){flf();l(strerror(errno))<<endl;}
+		//		if(ai)freeaddrinfo(ai);
+		//	}
 	}
-};
-
-#include<cmath>
 
 class p3{
 	float x,y,z;
@@ -481,7 +479,7 @@ public:
 };
 
 
-#include <list>
+//#include <list>
 class vbo{
 	GLuint glva;//vertex array
 	GLuint glvib;//indices array
@@ -976,18 +974,15 @@ public:
 		}
 		metrics::gridsrend++;
 		for(auto g:ls){
-//			glPushMatrix();
 			g->culldraw(bv);
-//			glPopMatrix();
 		}
 		for(auto g:lsmx){
-//			glPushMatrix();
 			g->culldraw(bv);
-//			glPopMatrix();
 		}
-		for(auto&g:grds)
-			if(g)
-				g->culldraw(bv);
+		if(grds[0])
+			for(auto&g:grds)
+//				if(g)
+					g->culldraw(bv);
 	}
 private:
 	bool putif(glob*g,const p3&p,const float r){
@@ -1356,7 +1351,7 @@ public:
 		mwv.togl(mx);
 		glUniformMatrix4fv(shader::umxwv,1,false,mx);
 		const bvol bv(0,0);
-		wold::get().culldraw(bv);//? grid
+		wold::get().grd.culldraw(bv);//? grid
 	}
 //	void drawframe(){
 //		const float freq=drawtmr.dt();
@@ -1646,6 +1641,9 @@ public:
 
 #include<png.h>
 
+}
+
+using namespace dbox;
 int main(){
 	if(!glfwInit())return -1;
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
@@ -1681,6 +1679,7 @@ int main(){
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
+//	win.dpos(p3(0,0,-.01f),p3());
 
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 	long long frm=0;
