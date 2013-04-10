@@ -861,21 +861,16 @@ namespace dbox{
 		bool refreshmxmw(){
 			if(!&g)
 				return false;
-			g.refreshmxmw();
-	//		bool refrsh=g.refreshmxmw();
-	//		if(!refrsh)
-	//			if(mxmwpos==*this&&mxmwagl==a)
-	//				return false;
+//			g.refreshmxmw();
+//			bool refrsh=g.refreshmxmw();
+//			if(!refrsh)
+//				if(mxmwpos==*this&&mxmwagl==a)
+//					return false;
 			metrics::mwrfsh++;
-
 			mxmwagl=a;
 			mxmwpos=*this;
-
-			mxmw=g.mxmw;
-			const m3 m(mxmwpos,mxmwagl);//? cache
-	//		m.mul(mxmw);
-	//		mxmw=m;
-			mxmw.mul(m);//? ifidentskip
+			mxmw.mw(mxmwpos,mxmwagl);//? cache
+			mxmw.mul(g.mxmw);//? g.mxmw ident skip
 			return true;
 		}
 	};
@@ -1681,14 +1676,14 @@ int main(){
 //	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
 //	glfwFreeImage(&img);
 
-	glob&g=*new glob(wd);
+	glob&g=*new glob(wd,p3(0,0,0),p3(0,0,0),.5f,1,0);
 	g.setvbo(vb);
 	g.dpos(p3(0,0,0),p3(0,0,10));
 
 	glob*gg=new glob(g);
 	gg->setvbo(vb);
-	gg->pos(p3(0,.5f,0),p3());
-//	gg->dpos(p3(0,0,0),p3(0,0,10));
+	gg->pos(p3(0,.8f,0),p3());
+	gg->dpos(p3(0,0,0),p3(0,0,10));
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
