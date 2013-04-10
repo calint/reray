@@ -318,7 +318,7 @@ public:
 	}
 	inline m3(){metrics::m3s++;ident();}
 	inline m3(const p3&p,const p3&a){metrics::m3s++;mw(p,a);}
-	inline m3(const GLfloat*m){metrics::m3s++;set(m);}
+//	inline m3(const GLfloat*m){metrics::m3s++;set(m);}
 	inline ~m3(){metrics::m3s--;}
 	inline p3 xaxis()const{return p3(xx,xy,xz);}
 	inline p3 yaxis()const{return p3(yx,yy,yz);}
@@ -359,13 +359,13 @@ public:
 		dst.set(nx,ny,nz);
 		return*this;
 	}
-	m3&set(const GLfloat m[16]){
-		xx=m[ 0];yx=m[ 4];zx=m[ 8];ox=m[12];
-		xy=m[ 1];yy=m[ 5];zy=m[ 9];oy=m[13];
-		xz=m[ 2];yz=m[ 6];zz=m[10];oz=m[14];
-		xo=m[ 3];yo=m[ 7];zo=m[11];oo=m[15];
-		return*this;
-	}
+//	m3&set(const GLfloat m[16]){
+//		xx=m[ 0];yx=m[ 4];zx=m[ 8];ox=m[12];
+//		xy=m[ 1];yy=m[ 5];zy=m[ 9];oy=m[13];
+//		xz=m[ 2];yz=m[ 6];zz=m[10];oz=m[14];
+//		xo=m[ 3];yo=m[ 7];zo=m[11];oo=m[15];
+//		return*this;
+//	}
 	m3&mul(const m3&m){
 		metrics::mmmul++;
 		const float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
@@ -871,10 +871,11 @@ protected:
 	bool refreshmxmw(){
 		if(!&g)
 			return false;
-		bool refrsh=g.refreshmxmw();
-		if(!refrsh)
-			if(mxmwpos==*this&&mxmwagl==a)
-				return false;
+		g.refreshmxmw();
+//		bool refrsh=g.refreshmxmw();
+//		if(!refrsh)
+//			if(mxmwpos==*this&&mxmwagl==a)
+//				return false;
 		metrics::mwrfsh++;
 
 		mxmwagl=a;
@@ -882,8 +883,9 @@ protected:
 
 		mxmw=g.mxmw;
 		const m3 m(mxmwpos,mxmwagl);//? cache
+//		m.mul(mxmw);
+//		mxmw=m;
 		mxmw.mul(m);//? ifidentskip
-
 		return true;
 	}
 };
@@ -1349,12 +1351,12 @@ public:
 	void drawframe(){
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		m3 mwv;
-		mwv.wv(*this,agl());
+		mwv.wv(*this,agl());//? cache
 		GLfloat mx[16];
 		mwv.togl(mx);
 		glUniformMatrix4fv(shader::umxwv,1,false,mx);
 		const bvol bv(0,0);
-		wold::get().culldraw(bv);
+		wold::get().culldraw(bv);//? grid
 	}
 //	void drawframe(){
 //		const float freq=drawtmr.dt();
@@ -1642,6 +1644,8 @@ public:
 	}
 };
 
+#include<png.h>
+
 int main(){
 	if(!glfwInit())return -1;
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
@@ -1659,14 +1663,21 @@ int main(){
 	vbo vb;
 	vb.glload();
 
+
+	GLFWimage img;
+	const char*pth="texture1.tga";
+	const int rs=glfwReadImage(pth,&img,0);
+	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
+	glfwFreeImage(&img);
+
 	glob&g=*new glob(wold::get());
 	g.setvbo(vb);
 	g.dpos(p3(0,0,0),p3(0,0,10));
 
 	glob*gg=new glob(g);
 	gg->setvbo(vb);
-	gg->pos(p3(.5f,.5f,0),p3());
-	gg->dpos(p3(0,0,0),p3(0,0,10));
+	gg->pos(p3(.5f,0,0),p3());
+	gg->dpos(p3(0,0,0),p3());
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
