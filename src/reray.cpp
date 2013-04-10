@@ -385,6 +385,35 @@ namespace dbox{
 
 			return*this;
 		}
+		m3&mulpre(const m3&m){
+			metrics::mmmul++;
+			float nxx=xx*m.xx+yx*m.xy+zx*m.xz+ox*m.xo;
+			float nyx=xx*m.yx+yx*m.yy+zx*m.yz+ox*m.yo;
+			float nzx=xx*m.zx+yx*m.zy+zx*m.zz+ox*m.zo;
+			float nox=xx*m.ox+yx*m.oy+zx*m.oz+ox*m.oo;
+
+			float nxy=xy*m.xx+yy*m.xy+zy*m.xz+oy*m.xo;
+			float nyy=xy*m.yx+yy*m.yy+zy*m.yz+oy*m.yo;
+			float nzy=xy*m.zx+yy*m.zy+zy*m.zz+oy*m.zo;
+			float noy=xy*m.ox+yy*m.oy+zy*m.oz+oy*m.oo;
+
+			float nxz=xz*m.xx+yz*m.xy+zz*m.xz+oz*m.xo;
+			float nyz=xz*m.yx+yz*m.yy+zz*m.yz+oz*m.yo;
+			float nzz=xz*m.zx+yz*m.zy+zz*m.zz+oz*m.zo;
+			float noz=xz*m.ox+yz*m.oy+zz*m.oz+oz*m.oo;
+
+			float nxo=xo*m.xx+yo*m.xy+zo*m.xz+oo*m.xo;
+			float nyo=xo*m.yx+yo*m.yy+zo*m.yz+oo*m.yo;
+			float nzo=xo*m.zx+yo*m.zy+zo*m.zz+oo*m.zo;
+			float noo=xo*m.ox+yo*m.oy+zo*m.oz+oo*m.oo;
+
+			xx=nxx;yx=nyx;zx=nzx;ox=nox;
+			xy=nxy;yy=nyy;zy=nzy;oy=noy;
+			xz=nxz;yz=nyz;zz=nzz;oz=noz;
+			xo=nxo;yo=nyo;zo=nzo;oo=noo;
+
+			return*this;
+		}
 		friend ostream&operator<<(ostream&,const m3&);
 		friend istream&operator>>(istream&,m3&);
 	private:
@@ -1645,14 +1674,18 @@ namespace dbox{
 
 }
 
+
+using namespace dbox;
 void GLFWCALL WindowResize(const int width,const int height){
 	cout<<"window resize "<<width<<" x "<<height<<endl;
 }
+static keyb*kb;
 void GLFWCALL Keyboard(const int key,const int pressed){
 	cout<<"keyboard key "<<key<<"   "<<pressed<<endl;
+	if(kb)
+		kb->onkeyb((char)key,pressed,0,0);
 }
 
-using namespace dbox;
 int main(){
 	if(!glfwInit())return -1;
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
@@ -1696,6 +1729,7 @@ int main(){
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
 	win.dpos(p3(0,0,-.01f),p3());
+	kb=&win;
 
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 	long long frm=0;
@@ -1708,6 +1742,7 @@ int main(){
 		win.drawframe();
 		clk::dt=t2.dt();
 		wd.dotck();
+		win.handlekeys();
 		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<"\r";
 		glfwSwapBuffers();
 		metrics::globsrend=0;
