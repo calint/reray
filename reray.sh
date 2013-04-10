@@ -3,7 +3,9 @@ clang++ -o reray src/reray.cpp \
 	-framework cocoa \
 	-framework opengl \
  	-framework iokit \
-	-O0 -g3 \
+ 	-I/usr/X11/include/ \
+ 	-L/usr/X11/lib/ \
+ 	-lpng \
 	-pedantic -pedantic-errors -Wall -Wextra -Werror -Wconversion \
 	-std=gnu++11 \
 	-Wfatal-errors &&
