@@ -17,12 +17,7 @@ namespace dbox{
 		int fps=120;
 		int dtms=1000/fps;
 		float dt=dtms/1000.f;
-		clock_t t0=clock();
-		clock_t t1=t0;
 		long long tk=0;
-		inline void timerrestart(){t1=clock();}
-//		inline clock_t timerdclk(){return clock()-t1;}
-		inline float timerdt(){return (float)(clock()-t1)/CLOCKS_PER_SEC;}
 	}
 	namespace metrics{
 		int globs;
@@ -48,14 +43,13 @@ namespace dbox{
 		int gridsrend;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
-	//? gloxrnd
 	inline float rnd(const float from,const float tonotincluding){return from+(tonotincluding-from)*rand()/RAND_MAX;}
 	inline float rndo(const float tonotincluding){return tonotincluding*rand()/RAND_MAX;}
 	inline float rndn(const float s){return rnd(-s,s);}
 	const float pi=3.1415926f;
 	const float degtoradp=pi/180;
 	inline float degtorad(const float deg=1){return deg*degtoradp;}
-	ostringstream sts;
+//	ostringstream sts;
 
 	#include<sys/time.h>
 	class tmr{
@@ -1117,20 +1111,20 @@ public:
 //		glEnable(GL_CULL_FACE);
 //	}
 	void tick(){
-		clk::timerrestart();
+//		clk::timerrestart();
 		glob::tick();
-		metrics::dtupd=clk::timerdt();
+//		metrics::dtupd=clk::timerdt();
 
-		clk::timerrestart();
+//		clk::timerrestart();
 		t+=dt();
 		if(coldetgrid){
 			grd.clear();
 			grd.addall(chls());
 			grd.coldet();
 		}
-		metrics::dtcoldetgrd=clk::timerdt();
+//		metrics::dtcoldetgrd=clk::timerdt();
 
-		clk::timerrestart();
+//		clk::timerrestart();
 		if(coldetbrute){
 			auto i1=getchs().begin();//? chls() givescrash,const?
 			while(true){
@@ -1146,7 +1140,7 @@ public:
 				i1++;
 			}
 		}
-		metrics::dtcoldetbrute=clk::timerdt();
+//		metrics::dtcoldetbrute=clk::timerdt();
 	}
 };
 wold wold::wd;
@@ -1230,8 +1224,14 @@ public:
 		if(hdlkeytg('z')){agl().setx(0);}
 	}
 	void onkeyb(const char c,const bool pressed,const int x,const int y){if(pressed)keydn(c,x,y);else keyup(c,x,y);}
-	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
-	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
+	void mouseclk(const int button,const int state,int x,const int y){
+		cout<<"mouseclk: "<<button<<" "<<state<<" "<<x<<" "<<y<<endl;
+		/*sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0]");*/
+	}
+	void mousemov(const int x,const int y){
+		cout<<"mousemov: "<<x<<" "<<y<<endl;
+		/*sts<<"mousmov("<<x<<","<<y<<")";*/
+	}
 	inline int getplayer()const{return player;}
 	inline void setplayer(const int i){player=i;}
 	inline const m3&getmxv()const{return mxv;}
@@ -1266,7 +1266,8 @@ private:
 		const int s=net::keys[player][i];
 		if(s==1)return;
 		net::keys[player][i]=1;
-		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+		cout<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+//		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 	}
 	void keyup(const char key,const int x,const int y){
 		const int i=keyix(key);
@@ -1275,7 +1276,8 @@ private:
 		if(s==1)return;
 		if(s!=2)throw signl(2,"unknownstate");
 		net::keys[player][i]=0;
-		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+		cout<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+//		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 	}
 	int keyix(const char key){//? char keys[]
 		switch(key){
@@ -1342,7 +1344,11 @@ public:
 		shadowmapsize(512),
 		firereload(0)
 	{}
-	void reshape(const int width,const int height){sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;}
+	void reshape(const int width,const int height){
+		cout<<"reshape "<<width<<" x "<<height;
+
+//		sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;
+	}
 	void drawframe(){
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		m3 mwv;
@@ -1623,7 +1629,7 @@ private:
 //		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 //		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
-		sts.str("");
+//		sts.str("");
 	}
 };
 
