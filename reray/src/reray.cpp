@@ -747,7 +747,7 @@ namespace dbox{
 			fi.clr();
 			d.transl(dd,dt());
 			transl(d,dt());
-			cout<<id<<" "<<dt()<<"   "<<*this<<endl;
+//			cout<<id<<" "<<dt()<<"   "<<*this<<endl;
 			a.transl(da,dt());
 			np.set(*this);
 			nd.set(d);
@@ -1681,25 +1681,26 @@ int main(){
 
 	glob&g=*new glob(wd,p3(0,0,0),p3(0,0,0),.5f,1,0);
 	g.setvbo(vb);
-	g.dpos(p3(0,0,0),p3(0,0,10));
+//	g.dpos(p3(0,0,.05f),p3(0,0,10));
 
-	glob*gg=new glob(g);
-	gg->setvbo(vb);
-	gg->pos(p3(1,0,0),p3());
-	gg->dpos(p3(0,0,0),p3(0,0,10));
-
-	glob*gg2=new glob(*gg);
-	gg2->setvbo(vb);
-	gg2->pos(p3(-1,0,0),p3());
+//	glob*gg=new glob(g);
+//	gg->setvbo(vb);
+//	gg->pos(p3(1,0,0),p3());
+//	gg->dpos(p3(0,0,0),p3(0,0,10));
+//
+//	glob*gg2=new glob(*gg);
+//	gg2->setvbo(vb);
+//	gg2->pos(p3(-1,0,0),p3());
 //	gg2->dpos(p3(0,0,0),p3(0,0,-10));
 
 	windo&win=*new windo();
 	win.pos(p3(0,0,1),p3());
-//	win.dpos(p3(0,0,-.01f),p3());
+	win.dpos(p3(0,0,-.01f),p3());
 
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 	long long frm=0;
 	tmr t,t1,t2;
+	cout<<"frame"<<" "<<"dt      "<<" "<<"dt     "<<" "<<"globs"<<" "<<"globsrend"<<"\n";
 	while(glfwGetWindowParam(GLFW_OPENED)){
 		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
 		frm++;
@@ -1707,7 +1708,7 @@ int main(){
 		win.drawframe();
 		clk::dt=t2.dt();
 		wd.dotck();
-		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<endl;
+		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<"\r";
 		glfwSwapBuffers();
 		metrics::globsrend=0;
 	}
