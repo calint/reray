@@ -190,7 +190,7 @@ namespace dbox{
 			if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
 	//		print();
 		}
-		void open(){
+		void init(){
 			flf();l()<<"connect "<<host<<":"<<port<<endl;
 
 			struct addrinfo hints;

@@ -39,6 +39,8 @@ namespace app{
 		while(argc--)puts(*argv++);
 
 		dbox::init();
+		dbox::net::host="localhost";
+		dbox::net::init();
 
 		vbo vb;
 		vb.glload();
