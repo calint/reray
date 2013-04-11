@@ -250,39 +250,39 @@ namespace dbox{
 		//	}
 	}
 
-	class p3{
+	class pt{
 		float x,y,z;
 	public:
-		inline p3():x(0),y(0),z(0){metrics::p3s++;}
-		inline p3(const p3&p){metrics::p3s++;x=p.x;y=p.y;z=p.z;}
-		inline p3(const float x,const float y,const float z):x(x),y(y),z(z){metrics::p3s++;}
-		inline p3(const p3&from,const p3&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){metrics::p3s++;}
-		inline p3(const p3&from,const p3&to,const float len):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){metrics::p3s++;norm(len);}
-		inline ~p3(){metrics::p3s--;}
+		inline pt():x(0),y(0),z(0){metrics::p3s++;}
+		inline pt(const pt&p){metrics::p3s++;x=p.x;y=p.y;z=p.z;}
+		inline pt(const float x,const float y,const float z):x(x),y(y),z(z){metrics::p3s++;}
+		inline pt(const pt&from,const pt&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){metrics::p3s++;}
+		inline pt(const pt&from,const pt&to,const float len):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){metrics::p3s++;norm(len);}
+		inline ~pt(){metrics::p3s--;}
 		inline float getx()const{return x;}
-		inline p3&setx(const float f){x=f;return*this;}
+		inline pt&setx(const float f){x=f;return*this;}
 		inline float gety()const{return y;}
-		inline p3&sety(const float f){y=f;return*this;}
+		inline pt&sety(const float f){y=f;return*this;}
 		inline float getz()const{return z;}
-		inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
-		inline p3&transl(const p3&d){x+=d.x;y+=d.y;z+=d.z;return*this;}
-		inline p3&transl(const p3&d,const float dt){x+=d.x*dt;y+=d.y*dt;z+=d.z*dt;return*this;}
+		inline pt&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
+		inline pt&transl(const pt&d){x+=d.x;y+=d.y;z+=d.z;return*this;}
+		inline pt&transl(const pt&d,const float dt){x+=d.x*dt;y+=d.y*dt;z+=d.z*dt;return*this;}
 		inline float magn()const{return sqrt(x*x+y*y+z*z);}
 		inline float magn2()const{return x*x+y*y+z*z;}
-		inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
-		inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
-		inline p3&neg(){x=-x;y=-y;z=-z;return*this;}
-		inline p3&negy(){y=-y;return*this;}
-		inline p3&scale(const float s){x*=s;y*=s;z*=s;return*this;}
-		inline p3&scale(const float sx,const float sy,const float sz){x*=sx;y*=sy;z*=sz;return*this;}
-		inline bool operator==(const p3&p)const{return x==p.x&&y==p.y&&z==p.z;}
-		inline float dot(const p3&p)const{return x*p.x+y*p.y+z*p.z;}
-		inline p3&vecprod(const p3&v1,const p3&v2){x=v1.y*v2.z-v1.z*v2.y;y=v1.z*v2.x-v1.x*v2.z;z=v1.x*v2.y-v1.y*v2.x;return*this;}
-		inline p3&pow2(){x*=x;y*=y;z*=z;return*this;}
+		inline pt&set(const pt&p){x=p.x;y=p.y;z=p.z;return*this;}
+		inline pt&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
+		inline pt&neg(){x=-x;y=-y;z=-z;return*this;}
+		inline pt&negy(){y=-y;return*this;}
+		inline pt&scale(const float s){x*=s;y*=s;z*=s;return*this;}
+		inline pt&scale(const float sx,const float sy,const float sz){x*=sx;y*=sy;z*=sz;return*this;}
+		inline bool operator==(const pt&p)const{return x==p.x&&y==p.y&&z==p.z;}
+		inline float dot(const pt&p)const{return x*p.x+y*p.y+z*p.z;}
+		inline pt&vecprod(const pt&v1,const pt&v2){x=v1.y*v2.z-v1.z*v2.y;y=v1.z*v2.x-v1.x*v2.z;z=v1.x*v2.y-v1.y*v2.x;return*this;}
+		inline pt&pow2(){x*=x;y*=y;z*=z;return*this;}
 		inline float sum()const{return x+y+z;}
-		inline p3&mult(const p3&p){x*=p.x;y*=p.y;z*=p.z;return*this;}
-		inline p3&clr(){x=y=z=0;return*this;}
-		p3&norm(const float length=1){
+		inline pt&mult(const pt&p){x*=p.x;y*=p.y;z*=p.z;return*this;}
+		inline pt&clr(){x=y=z=0;return*this;}
+		pt&norm(const float length=1){
 			float q=sqrt(x*x+y*y+z*z);
 			if(q==0){
 				x=y=z=0;
@@ -292,13 +292,13 @@ namespace dbox{
 			x=t*x;y=t*y;z=t*z;
 			return*this;
 		}
-		friend ostream&operator<<(ostream&,const p3&);
-		friend istream&operator>>(istream&,p3&);
+		friend ostream&operator<<(ostream&,const pt&);
+		friend istream&operator>>(istream&,pt&);
 	};
-	inline ostream&operator<<(ostream&os,const p3&p){os<<p.x<<" "<<p.y<<" "<<p.z;return os;}
-	inline istream&operator>>(istream&is,p3&p){is>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
+	inline ostream&operator<<(ostream&os,const pt&p){os<<p.x<<" "<<p.y<<" "<<p.z;return os;}
+	inline istream&operator>>(istream&is,pt&p){is>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
 
-	class m3{
+	class mtx{
 	public:
 		void togl(GLfloat m[])const{
 			 m[0]=xx; m[1]=xy; m[2]=xz; m[3]=xo;
@@ -306,29 +306,29 @@ namespace dbox{
 			 m[8]=zx; m[9]=zy;m[10]=zz;m[11]=zo;
 			m[12]=ox;m[13]=oy;m[14]=oz;m[15]=oo;
 		}
-		inline m3(){metrics::m3s++;ident();}
-		inline m3(const p3&p,const p3&a){metrics::m3s++;mw(p,a);}
+		inline mtx(){metrics::m3s++;ident();}
+		inline mtx(const pt&p,const pt&a){metrics::m3s++;mw(p,a);}
 	//	inline m3(const GLfloat*m){metrics::m3s++;set(m);}
-		inline ~m3(){metrics::m3s--;}
-		inline p3 xaxis()const{return p3(xx,xy,xz);}
-		inline p3 yaxis()const{return p3(yx,yy,yz);}
-		inline p3 zaxis()const{return p3(zx,zy,zz);}
+		inline ~mtx(){metrics::m3s--;}
+		inline pt xaxis()const{return pt(xx,xy,xz);}
+		inline pt yaxis()const{return pt(yx,yy,yz);}
+		inline pt zaxis()const{return pt(zx,zy,zz);}
 //		inline m3&xplane(GLfloat*v){v[0]=xx;v[1]=yx;v[2]=zx;v[3]=ox;return*this;}
 //		inline m3&yplane(GLfloat*v){v[0]=xy;v[1]=yy;v[2]=zy;v[3]=oy;return*this;}
 //		inline m3&zplane(GLfloat*v){v[0]=xz;v[1]=yz;v[2]=zz;v[3]=oz;return*this;}
 //		inline m3&wplane(GLfloat*v){v[0]=xo;v[1]=yo;v[2]=zo;v[3]=oo;return*this;}
-		m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; ox=oy=oz=0; oo=1;return*this;}
-		m3&wv(const p3&p,const p3&a){
+		mtx&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; ox=oy=oz=0; oo=1;return*this;}
+		mtx&wv(const pt&p,const pt&a){
 			ident();
 			ox=-p.getx();
 			oy=-p.gety();
 			oz=-p.getz();
 			rotz(degtorad(-a.getz()));
-	//		rotx(degtorad(-a.getx()));
-	//		roty(degtorad(-a.gety()));
+			rotx(degtorad(-a.getx()));
+			roty(degtorad(-a.gety()));
 			return*this;
 		}
-		m3&mw(const p3&p,const p3&a){//? Mszxyt
+		mtx&mw(const pt&p,const pt&a){//? Mszxyt
 			ident();
 			roty(degtorad(a.gety()));
 			rotx(degtorad(a.getx()));
@@ -338,7 +338,7 @@ namespace dbox{
 			oz=p.getz();
 			return*this;
 		}
-		const m3&trnsf(const p3&src,p3&dst)const{
+		const mtx&trnsf(const pt&src,pt&dst)const{
 			metrics::mpmul++;
 			const float x=src.getx();
 			const float y=src.gety();
@@ -356,7 +356,7 @@ namespace dbox{
 	//		xo=m[ 3];yo=m[ 7];zo=m[11];oo=m[15];
 	//		return*this;
 	//	}
-		m3&mul(const m3&m){
+		mtx&mul(const mtx&m){
 			metrics::mmmul++;
 			const float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
 			const float nyx=m.xx*yx+m.yx*yy+m.zx*yz+m.ox*yo;
@@ -385,7 +385,7 @@ namespace dbox{
 
 			return*this;
 		}
-		m3&mulpre(const m3&m){
+		mtx&mul2(const mtx&m){
 			metrics::mmmul++;
 			float nxx=xx*m.xx+yx*m.xy+zx*m.xz+ox*m.xo;
 			float nyx=xx*m.yx+yx*m.yy+zx*m.yz+ox*m.yo;
@@ -414,14 +414,26 @@ namespace dbox{
 
 			return*this;
 		}
-		friend ostream&operator<<(ostream&,const m3&);
-		friend istream&operator>>(istream&,m3&);
+		mtx&setsclagltrans(const pt&s,const pt&a,const pt&p){
+			const float sinz=sinf(degtorad(a.getz()));
+			const float cosz=cosf(degtorad(a.getz()));
+			const float sx=s.getx();
+			const float sy=s.gety();
+			const float sz=s.getz();
+			xx=cosz*sx; yx=-sinz*sx; zx=  0; ox=p.getx();
+			xy=sinz*sy; yy= cosz*sy; zy=  0; oy=p.gety();
+			xz=      0; yz=       0; zz= sz; oz=p.getz();
+			xo=      0; yo=       0; zo=  0; oo=1;
+			return*this;
+		}
+		friend ostream&operator<<(ostream&,const mtx&);
+		friend istream&operator>>(istream&,mtx&);
 	private:
 		float xx,yx,zx,ox;
 		float xy,yy,zy,oy;
 		float xz,yz,zz,oz;
 		float xo,yo,zo,oo;
-		m3&rotx(const float a){
+		mtx&rotx(const float a){
 			const float c=cos(a),s=sin(a);
 			const float nyx=yx*c+zx*s,nyy=yy*c+zy*s,nyz=yz*c+zz*s,nyo=yo*c+zo*s;
 			const float nzx=zx*c-yx*s,nzy=zy*c-yy*s,nzz=zz*c-yz*s,nzo=zo*c-yo*s;
@@ -429,7 +441,7 @@ namespace dbox{
 			zx=nzx;zy=nzy;zz=nzz;zo=nzo;
 			return*this;
 		}
-		m3&roty(const float a){
+		mtx&roty(const float a){
 			const float c=cos(a),s=sin(a);
 			const float nxx=xx*c-zx*s,nxy=xy*c-zy*s,nxz=xz*c-zz*s,nxo=xo*c-zo*s;
 			const float nzx=zx*c+xx*s,nzy=zy*c+xy*s,nzz=zz*c+xz*s,nzo=zo*c+xo*s;
@@ -437,7 +449,7 @@ namespace dbox{
 			zx=nzx;zy=nzy;zz=nzz;zo=nzo;
 			return*this;
 		}
-		m3&rotz(const float a){
+		mtx&rotz(const float a){
 			const float c=cos(a),s=sin(a);
 			const float nxx=xx*c+yx*s,nxy=xy*c+yy*s,nxz=xz*c+yz*s,nxo=xo*c+yo*s;
 			const float nyx=yx*c-xx*s,nyy=yy*c-xy*s,nyz=yz*c-xz*s,nyo=yo*c-xo*s;
@@ -446,15 +458,15 @@ namespace dbox{
 			return*this;
 		}
 	};
-	ostream&operator<<(ostream&os,const m3&m){
-		cout<<"["<<p3(m.xx,m.yx,m.zx)<<" "<<m.ox<<"] [";
-		cout<<p3(m.xy,m.yy,m.zy)<<" "<<m.oy<<"] [";
-		cout<<p3(m.xz,m.yz,m.zz)<<" "<<m.oz<<"] [";
-		cout<<p3(m.xo,m.yo,m.zo)<<" "<<m.oo<<"]";
+	ostream&operator<<(ostream&os,const mtx&m){
+		cout<<"["<<pt(m.xx,m.yx,m.zx)<<" "<<m.ox<<"] [";
+		cout<<pt(m.xy,m.yy,m.zy)<<" "<<m.oy<<"] [";
+		cout<<pt(m.xz,m.yz,m.zz)<<" "<<m.oz<<"] [";
+		cout<<pt(m.xo,m.yo,m.zo)<<" "<<m.oo<<"]";
 		return os;
 	}
-	istream&operator>>(istream&is,m3&m){
-		p3 p;
+	istream&operator>>(istream&is,mtx&m){
+		pt p;
 		is.ignore();
 		is>>p;m.xx=p.getx();m.yx=p.gety();m.zx=p.getz();is.ignore();is>>m.ox;is.ignore(3);
 		is>>p;m.xy=p.getx();m.yy=p.gety();m.zy=p.getz();is.ignore();is>>m.oy;is.ignore(3);
@@ -462,30 +474,30 @@ namespace dbox{
 		is>>p;m.xo=p.getx();m.yo=p.gety();m.zo=p.getz();is.ignore();is>>m.oo;is.ignore();
 		return is;
 	}
-	class p3n:public p3{
-		p3 n;
+	class plane:public pt{
+		const pt n;
 	public:
-		p3n(const p3&p,const p3&n):
-			p3(p),
+		plane(const pt&p,const pt&n):
+			pt(p),
 			n(n)
 		{}
-		float dist(const p3&p)const{
-			const p3 v(*this,p);
+		float dist(const pt&p)const{
+			const pt v(*this,p);
 			return n.dot(v);
 		}
 	};
 
 	class bvol{
 		const int count;
-		const p3n*pns;
+		const plane*pns;
 	public:
-		bvol(const int count,const p3n p[]):
+		bvol(const int count,const plane p[]):
 			count(count),
 			pns(p)
 		{}
-		int cull(const p3&p,const float r)const{
+		int cull(const pt&p,const float r)const{
 			for(int i=0;i<count;i++){
-				const p3n&pp=pns[i];
+				const plane&pp=pns[i];
 				//const p3 v(pp,*this);
 				//const float t=v.dot(pp.n);
 				const float t=pp.dist(p);
@@ -638,51 +650,54 @@ namespace dbox{
 		}
 	};
 
-	class glob:public p3{
+	class glob:public pt{
 		const int id;
 		glob&g;
-		p3 a;
+		pt a;
 		list<glob*>chs;
 		list<glob*>chsrm;
 		list<glob*>chsadd;
 		int bits;
 		long long ptmxupdtk;
 		long long mxmwtk;
-		m3 mxmw;
-		p3 mxmwpos;
-		p3 mxmwagl;
+		mtx mxmw;
+		pt mxmwpos;
+		pt mxmwagl;
+		pt mxmwscl;
 		bool rmed;
 		float r;
-		p3 dd;
+		pt dd;
 		float bf;
 		float m=1;
 		long long tk;
 		long long culldrawtk;
 	protected:
-		p3 d;
-		p3 da;
-		p3 f;
-		p3 fi;
-		p3 pp;
+		pt d;
+		pt da;
+		pt f;
+		pt fi;
+		pt pp;
 		bool ppsaved;
 		inline const list<glob*>getchs()const{return chs;}
 		vbo*vb;
+		pt scl;
 	public:
-		p3 np;
-		p3 nd;
+		pt np;
+		pt nd;
 		static bool drawboundingspheres;
 		static int drawboundingspheresdetail;
 
-		glob&pos(const p3&coord,const p3&agl){np.set(coord);a.set(agl);return*this;}
-		glob&setvbo(vbo&v){vb=&v;return*this;}
-		const m3&getmxmw(){refreshmxmw();return mxmw;}
-		glob&dpos(const p3&dpdt,const p3&dadt){nd.set(dpdt);da.set(dadt);return*this;}
+		inline glob&pos(const pt&coord,const pt&agl){np.set(coord);a.set(agl);return*this;}
+		inline glob&setvbo(vbo&v){vb=&v;return*this;}
+		inline const mtx&getmxmw(){refreshmxmw();return mxmw;}
+		inline glob&dpos(const pt&dpdt,const pt&dadt){nd.set(dpdt);da.set(dadt);return*this;}
+		inline const pt&getscl(){return scl;}
 
-		glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
-			p3(p),id(metrics::globs++),g(g),a(a),bits(1),ptmxupdtk(-1),mxmwtk(0),rmed(false),
+		glob(glob&g,const pt&p=pt(),const pt&a=pt(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
+			pt(p),id(metrics::globs++),g(g),a(a),bits(1),ptmxupdtk(-1),mxmwtk(0),rmed(false),
 			 r(r),bf(bounciness),m(density_gcm3*4/3*pi*r*r*r),
-			 tk(0),culldrawtk(0),d(p3()),da(p3()),f(p3()),fi(p3()),pp(p),ppsaved(false),
-			 vb(0),
+			 tk(0),culldrawtk(0),d(pt()),da(pt()),f(pt()),fi(pt()),pp(p),ppsaved(false),
+			 vb(0),scl(r,r,r),
 			 np(p),nd(d)
 		{
 			if(&g==0)return;
@@ -702,9 +717,9 @@ namespace dbox{
 			rmed=true;g.chsrm.push_back(this);
 		}
 		void coldet(glob&o){
-			const p3 wpthis=g.posinwcs(*this);
-			const p3 wpo=o.g.posinwcs(o);
-			const p3 v(wpthis,wpo);
+			const pt wpthis=g.posinwcs(*this);
+			const pt wpo=o.g.posinwcs(o);
+			const pt v(wpthis,wpo);
 			const float d=v.magn();//? magn2
 			const float rr=radius()+o.radius();
 			metrics::coldetsph++;
@@ -772,7 +787,7 @@ namespace dbox{
 				ppsaved=false;//?
 			}
 	//		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
-			dd=p3(f).transl(fi).scale(1/m);
+			dd=pt(f).transl(fi).scale(1/m);
 			fi.clr();
 			d.transl(dd,dt());
 			transl(d,dt());
@@ -790,16 +805,16 @@ namespace dbox{
 			}
 			for(auto g:chs)g->gldraw();
 		};
-		inline p3&agl(){return a;}//?
-		inline p3&getd(){return d;}//?
+		inline pt&agl(){return a;}//?
+		inline pt&getd(){return d;}//?
 		inline float mass()const{return m;}
 		inline glob&parent()const{return g;}
 		inline int getid()const{return id;}
 		inline const list<glob*>chls()const{return chs;}
 		inline float radius()const{return r;}
 		inline glob&radius(const float r){this->r=r;return*this;}
-		inline const p3&angle()const{return a;}
-		inline p3&dp(){return d;}
+		inline const pt&angle()const{return a;}
+		inline pt&dp(){return d;}
 		inline bool iscolmx()const{return bits&16;}
 		inline glob&setblt(const bool b){if(b)bits|=2;else bits&=0xfffffffd;return*this;}
 		inline glob&setitem(const bool b){if(b)bits|=8;else bits&=0xfffffff8;return*this;}
@@ -836,18 +851,18 @@ namespace dbox{
 			metrics::collisions++;
 			//flf();l()<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 			if(!o.issolid())return true;
-			const p3&p1=*this;
-			const p3&u1=d;
-			const p3&p2=o;
-			const p3&u2=o.d;
+			const pt&p1=*this;
+			const pt&u1=d;
+			const pt&p2=o;
+			const pt&u2=o.d;
 			const float r1=radius();
 			const float r2=o.radius();
 			const float r0=r1+r2;
-			const p3 du=p3(u2,u1);
-			const float a=p3(du).dot(du);
-			const p3 dp=p3(p2,p1);
-			const float b=2*p3(dp).dot(du);
-			const float c=p3(dp).dot(dp)-r0*r0;
+			const pt du=pt(u2,u1);
+			const float a=pt(du).dot(du);
+			const pt dp=pt(p2,p1);
+			const float b=2*pt(dp).dot(du);
+			const float c=pt(dp).dot(dp)-r0*r0;
 			float t1=0,t2=0;
 			if(!solvesecdegeq(a,b,c,t1,t2)){
 	//			const float d=p3(p1,p2).magn();
@@ -862,17 +877,17 @@ namespace dbox{
 	//			return true;
 			}
 			np.set(p1).transl(u1,t);
-			p3 np2(p2);
+			pt np2(p2);
 			np2.transl(u2,t);
-			const p3 nml(np,np2,true);
-			p3 vu1(nml);
+			const pt nml(np,np2,true);
+			pt vu1(nml);
 			vu1.scale(u1.dot(nml));
-			p3 vu2(nml);
+			pt vu2(nml);
 			vu2.scale(u2.dot(nml));
 			const float m1=m;
 			const float m2=o.m;
 			const float mm=1/(m1+m2);
-			p3 v1(u1);
+			pt v1(u1);
 			v1.transl(vu1,-1);
 			v1.transl(vu1,(m1-m2)*mm*bf);
 			v1.transl(vu2,2*m2*mm*bf);
@@ -883,9 +898,9 @@ namespace dbox{
 		}
 
 	protected:
-		p3 posinwcs(const p3&p){
+		pt posinwcs(const pt&p){
 			refreshmxmw();
-			p3 d;
+			pt d;
 			mxmw.trnsf(p,d);//? ifidentskip
 			return d;
 		}
@@ -893,14 +908,22 @@ namespace dbox{
 			if(!&g)//skip root object with ortho norm xyzw
 				return;
 			if(g.mxmwtk==ptmxupdtk){
-				if(mxmwpos==*this&&mxmwagl==a)
+				if(mxmwpos==*this&&mxmwagl==a&&mxmwscl==getscl())
 					return;
 			}
 			metrics::mwrfsh++;
 			mxmwagl=a;
 			mxmwpos=*this;
-			mxmw.mw(mxmwpos,mxmwagl);//? cache
-			mxmw.mul(g.getmxmw());//? g.mxmw ident skip
+			mxmwscl=getscl();
+//			flf();l()<<mxmwscl<<endl;
+//			mxmw.mw(mxmwpos,mxmwagl);//? cache
+			mxmw.setsclagltrans(mxmwscl,mxmwagl,mxmwpos);//?cache
+			if(&g.g)// skip mul with ident
+				mxmw.mul(g.getmxmw());
+
+//			mxmw=g.mxmw;
+//			mxmw.mul2(mtx(mxmwpos,mxmwagl));//? cache
+
 			mxmwtk=clk::tk;
 			ptmxupdtk=g.mxmwtk;
 			return;
@@ -910,7 +933,7 @@ namespace dbox{
 	int glob::drawboundingspheresdetail=6;
 
 	class grid{
-		p3 po;
+		pt po;
 		float s;
 		list<glob*>ls;
 		list<glob*>lsmx;
@@ -918,7 +941,7 @@ namespace dbox{
 		const size_t splitthresh=100;
 		const int subgridlevels=4;
 	public:
-		grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
+		grid(const float size,const pt&p=pt()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
 		~grid(){metrics::ngrids--;clear();}
 		void tick(){
 			for(auto g:ls)
@@ -1004,7 +1027,7 @@ namespace dbox{
 						g->culldraw(bv);
 		}
 	private:
-		bool putif(glob*g,const p3&p,const float r){
+		bool putif(glob*g,const pt&p,const float r){
 			if((p.getx()+s+r)<po.getx())return false;
 			if((p.getx()-s-r)>po.getx())return false;
 			if((p.getz()+s+r)<po.getz())return false;
@@ -1025,15 +1048,15 @@ namespace dbox{
 			if(nrec==0)
 				return false;
 			const float ns=s/2;
-			grds[0]=new grid(ns,p3(po).transl(-ns,ns,-ns));//?
-			grds[1]=new grid(ns,p3(po).transl( ns,ns,-ns));
-			grds[2]=new grid(ns,p3(po).transl(-ns,ns, ns));
-			grds[3]=new grid(ns,p3(po).transl( ns,ns, ns));
+			grds[0]=new grid(ns,pt(po).transl(-ns,ns,-ns));//?
+			grds[1]=new grid(ns,pt(po).transl( ns,ns,-ns));
+			grds[2]=new grid(ns,pt(po).transl(-ns,ns, ns));
+			grds[3]=new grid(ns,pt(po).transl( ns,ns, ns));
 
-			grds[4]=new grid(ns,p3(po).transl(-ns,-ns,-ns));
-			grds[5]=new grid(ns,p3(po).transl( ns,-ns,-ns));
-			grds[6]=new grid(ns,p3(po).transl(-ns,-ns, ns));
-			grds[7]=new grid(ns,p3(po).transl( ns,-ns, ns));
+			grds[4]=new grid(ns,pt(po).transl(-ns,-ns,-ns));
+			grds[5]=new grid(ns,pt(po).transl( ns,-ns,-ns));
+			grds[6]=new grid(ns,pt(po).transl(-ns,-ns, ns));
+			grds[7]=new grid(ns,pt(po).transl( ns,-ns, ns));
 
 			for(auto g:grds){
 				for(auto o:ls)
@@ -1063,7 +1086,7 @@ namespace dbox{
 		float t=0;
 	public:
 		wold(const float r=15):
-			glob(*(glob*)0,p3(),p3(),r),
+			glob(*(glob*)0,pt(),pt(),r),
 			t(0),
 			grd(r),
 //			kb(0),
@@ -1194,9 +1217,9 @@ namespace dbox{
 		float rocketry;
 		int items=0;
 		int player=0;
-		m3 mxv;
+		mtx mxv;
 	public:
-		vehicle(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
+		vehicle(glob&g,const pt&p=pt(),const pt&a=pt(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
 			glob(g,p,a,r,density_gcm3,bounciness),
 			fwdbckrate(.001f),
 			straferate(.001f),
@@ -1259,7 +1282,7 @@ namespace dbox{
 		}
 		inline int getplayer()const{return player;}
 		inline void setplayer(const int i){player=i;}
-		inline const m3&getmxv()const{return mxv;}
+		inline const mtx&getmxv()const{return mxv;}
 		inline float getflappery()const{return flappery;}
 		inline float getrocketry()const{return rocketry;}
 		inline float getitems()const{return items;}
@@ -1351,7 +1374,7 @@ namespace dbox{
 		float firereload;
 		tmr drawtmr;
 	public:
-		windo(glob&g=wd,const p3&p=p3(),const p3&a=p3(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):
+		windo(glob&g=wd,const pt&p=pt(),const pt&a=pt(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):
 			vehicle(g,p,a,r,.25f),
 			dodrawhud(false),
 			gamemode(false),
@@ -1376,7 +1399,7 @@ namespace dbox{
 		}
 		void drawframe(){
 			glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-			m3 mwv;
+			mtx mwv;
 			mwv.wv(*this,agl());//? cache
 			GLfloat mx[16];
 			mwv.togl(mx);
@@ -1693,7 +1716,7 @@ int main(){
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 	if(!glfwOpenWindow(512,512,8,8,8,8,32,0,GLFW_WINDOW))return -1;
-	cout<<"  version: "<<glGetString(GL_VERSION)<<endl;
+	cout<<"   opengl: "<<glGetString(GL_VERSION)<<endl;
 	shader::init();
 	glfwSwapInterval(0);
 	glfwEnable(GLFW_STICKY_KEYS);
@@ -1705,6 +1728,11 @@ int main(){
 	vbo vb;
 	vb.glload();
 
+	printf("sizeofs\n");
+	printf(": %8s : %-4lu :\n","pt",sizeof(pt));
+	printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
+	printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
+	printf(": %8s : %-4lu :\n","glob",sizeof(glob));
 
 //	GLFWimage img;
 //	const char*pth="texture1.tga";
@@ -1712,29 +1740,31 @@ int main(){
 //	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
 //	glfwFreeImage(&img);
 
-	glob&g=*new glob(wd,p3(0,0,0),p3(0,0,0),.5f,1,0);
+	glob&g=*new glob(wd,pt(),pt(),.2f,1,0);
 	g.setvbo(vb);
-//	g.dpos(p3(0,0,.05f),p3(0,0,10));
+	g.dpos(pt(0,0,0),pt(0,0,10));
 
-//	glob*gg=new glob(g);
-//	gg->setvbo(vb);
-//	gg->pos(p3(1,0,0),p3());
-//	gg->dpos(p3(0,0,0),p3(0,0,10));
-//
-//	glob*gg2=new glob(*gg);
-//	gg2->setvbo(vb);
-//	gg2->pos(p3(-1,0,0),p3());
-//	gg2->dpos(p3(0,0,0),p3(0,0,-10));
+	glob*gg=new glob(g,pt(1,0,0),pt(),1,1,0);
+	gg->setvbo(vb);
+	gg->pos(pt(1,0,0),pt());
+	gg->dpos(pt(0,0,0),pt(0,0,10));
+
+	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
+	gg2->setvbo(vb);
+//	gg2->dpos(pt(0,0,0),pt(0,0,-10));
 
 	windo&win=*new windo();
-	win.pos(p3(0,0,1),p3());
-	win.dpos(p3(0,0,-.01f),p3());
+	win.pos(pt(0,0,1),pt());
+	win.dpos(pt(0,0,-.1f),pt());
 	kb=&win;
 
 	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
 	long long frm=0;
 	tmr t,t1,t2;
-	cout<<"frame"<<" "<<"dt      "<<" "<<"dt     "<<" "<<"globs"<<" "<<"globsrend"<<"\n";
+//	printf(": %5lu : %5f : %5f : %5d : %5d :\n",frm,t.dt(),dt(),metrics::globs,metrics::globsrend);
+	printf(": %5s : %8s : %8s : %5s : %5s : %5s :\n","frame","dt","dt","globs","grend","mmul");
+
+//	cout<<"frame"<<" "<<"dt      "<<" "<<"dt     "<<" "<<"globs"<<" "<<"globsrend"<<"\n";
 	while(glfwGetWindowParam(GLFW_OPENED)){
 		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
 		frm++;
@@ -1743,10 +1773,11 @@ int main(){
 		clk::dt=t2.dt();
 		wd.dotck();
 		win.handlekeys();
-		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<"\r";
+		printf(": %5lld : %8f : %8f : %5d : %5d : %5d :\r",frm,t.dt(),dt(),metrics::globs,metrics::globsrend,metrics::mmmul);
+//		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<"\r";
 		glfwSwapBuffers();
-		metrics::globsrend=0;
+		metrics::globsrend=metrics::mmmul=0;
 	}
-	cout<<frm/t1.dt()<<endl;
+	cout<<endl<<frm/t1.dt()<<endl;
 	return 0;
 }
