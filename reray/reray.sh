@@ -1,5 +1,6 @@
 clang++ -o reray src/reray.cpp \
 	glfw/lib/osx/libglfw.a \
+	-O3 \
 	-framework cocoa \
 	-framework opengl \
  	-framework iokit \

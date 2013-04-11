@@ -45,6 +45,7 @@ namespace dbox{
 		float rayone;
 		int gridsculled;
 		int gridsrend;
+		float dtgrdput;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){return from+(tonotincluding-from)*rand()/RAND_MAX;}
@@ -122,7 +123,7 @@ namespace dbox{
 	//		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;uniform sampler2D ushad;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?-.2:0.;gl_FragColor=la*vec4(1,1,1,1)+tex+gl_Color;}"};
 	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);gl_FragColor=la*(tex+ln+gl_Color);}"};
 	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);float wa=gl_FragCoord.w;gl_FragColor=la*(ln*.2+wa*.5+tex+gl_Color);}"};
-			const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba*(1-gl_FragCoord.z);}"};
+			const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba+(1-gl_FragCoord.z);}"};
 			const GLint frgshdrsrclen[]={GLint(strlen(frgshdrsrc[0]))};
 			glShaderSource(frgshdr,1,frgshdrsrc,frgshdrsrclen);
 			glCompileShader(frgshdr);
@@ -654,9 +655,11 @@ namespace dbox{
 		const int id;
 		glob&g;
 		pt a;
+	protected:
 		list<glob*>chs;
 		list<glob*>chsrm;
 		list<glob*>chsadd;
+	private:
 		int bits;
 		long long ptmxupdtk;
 		long long mxmwtk;
@@ -694,11 +697,11 @@ namespace dbox{
 		inline const pt&getscl(){return scl;}
 		inline glob&setscl(const pt&s){scl.set(s);return*this;}
 
-		glob(glob&g,const pt&p=pt(),const pt&a=pt(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
+		glob(glob&g,const pt&p=pt(),const pt&a=pt(),const float r=1,const float density_gcm3=1,const float bounciness=.5f,vbo&vb=*(vbo*)0):
 			pt(p),id(metrics::globs++),g(g),a(a),bits(1),ptmxupdtk(-1),mxmwtk(0),rmed(false),
 			 r(r),bf(bounciness),m(density_gcm3*4/3*pi*r*r*r),
 			 tk(0),culldrawtk(0),d(pt()),da(pt()),f(pt()),fi(pt()),pp(p),ppsaved(false),
-			 vb(0),scl(r,r,r),
+			 vb(&vb),scl(r,r,r),
 			 np(p),nd(d)
 		{
 			if(&g==0)return;
@@ -718,13 +721,12 @@ namespace dbox{
 			rmed=true;g.chsrm.push_back(this);
 		}
 		void coldet(glob&o){
+			metrics::coldetsph++;
 			const pt wpthis=g.posinwcs(*this);
 			const pt wpo=o.g.posinwcs(o);
 			const pt v(wpthis,wpo);
-			const float d=v.magn();//? magn2
 			const float rr=radius()+o.radius();
-			metrics::coldetsph++;
-	//		flf();l()<<typeid(*this).name()<<"("<<wpthis<<")  "<<typeid(o).name()<<"("<<wpo<<")  "<<d<<"  "<<bv.r<<"   "<<o.bv.r<<endl;
+			const float d=v.magn();//? magn2
 			if(d>=rr){
 				if(o.iscoldetrec()){
 					for(auto gg:o.chs)
@@ -751,7 +753,7 @@ namespace dbox{
 		}
 		void culldraw(const bvol&bv){
 			if(culldrawtk==clk::tk){
-				flf();l("double rend");
+//				flf();l("double rend");
 				return;
 			}
 			culldrawtk=clk::tk;
@@ -780,8 +782,12 @@ namespace dbox{
 			d.set(nd);
 			set(np);
 			chs.splice(chs.end(),chsadd);
-			for(auto g:chs)g->dotck();
-			for(auto g:chsrm){chs.remove(g);delete g;}
+			for(auto g:chs)
+				g->dotck();
+			for(auto g:chsrm){
+				chs.remove(g);
+				delete g;
+			}
 			chsrm.clear();
 			if(!ppsaved){
 				pp.set(*this);
@@ -915,7 +921,7 @@ namespace dbox{
 			metrics::mwrfsh++;
 			mxmwagl=a;
 			mxmwpos=*this;
-			mxmwscl=getscl();
+			mxmwscl=scl;
 //			flf();l()<<mxmwscl<<endl;
 //			mxmw.mw(mxmwpos,mxmwagl);//? cache
 			mxmw.setsclagltrans(mxmwscl,mxmwagl,mxmwpos);//?cache
@@ -942,7 +948,7 @@ namespace dbox{
 		const size_t splitthresh=100;
 		const int subgridlevels=4;
 	public:
-		grid(const float size,const pt&p=pt()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
+		grid(const float size,const pt&p=pt(0,0,-.5f)):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
 		~grid(){metrics::ngrids--;clear();}
 		void tick(){
 			for(auto g:ls)
@@ -986,6 +992,7 @@ namespace dbox{
 			//? ifallglobswhereaddedtoallsubgrids,stoprecurtion
 		}
 		void coldet(){
+//			flf();l()<<ls.size()<<endl;
 			if(!ls.empty()){
 				auto i1=ls.begin();
 				while(true){
@@ -1004,7 +1011,7 @@ namespace dbox{
 						for(auto g2:lsmx)
 							g1->coldet(*g2);
 			}
-			if(grds[0])
+			if(&grds[0])
 				for(auto g:grds)
 					if(g)
 						g->coldet();
@@ -1049,7 +1056,7 @@ namespace dbox{
 			if(nrec==0)
 				return false;
 			const float ns=s/2;
-			grds[0]=new grid(ns,pt(po).transl(-ns,ns,-ns));//?
+			grds[0]=new grid(ns,pt(po).transl(-ns,ns,-ns));//? recycle
 			grds[1]=new grid(ns,pt(po).transl( ns,ns,-ns));
 			grds[2]=new grid(ns,pt(po).transl(-ns,ns, ns));
 			grds[3]=new grid(ns,pt(po).transl( ns,ns, ns));
@@ -1086,7 +1093,7 @@ namespace dbox{
 //		static wold wd;
 		float t=0;
 	public:
-		wold(const float r=15):
+		wold(const float r=1):
 			glob(*(glob*)0,pt(),pt(),r),
 			t(0),
 			grd(r),
@@ -1162,16 +1169,23 @@ namespace dbox{
 		void tick(){
 	//		clk::timerrestart();
 			glob::tick();
+
+//			chs.splice(chs.end(),chsadd);
+//			for(auto g:chs)g->dotck();
+//			for(auto g:chsrm){chs.remove(g);delete g;}
+
 	//		metrics::dtupd=clk::timerdt();
 
 	//		clk::timerrestart();
 			t+=dt();
+			tmr t;
+			grd.clear();
+			grd.addall(chls());
+			metrics::dtgrdput=t.dt();
 			if(coldetgrid){
-				grd.clear();
-				grd.addall(chls());
 				grd.coldet();
 			}
-	//		metrics::dtcoldetgrd=clk::timerdt();
+			metrics::dtcoldetgrd=t.dt();
 
 	//		clk::timerrestart();
 			if(coldetbrute){
@@ -1406,7 +1420,8 @@ namespace dbox{
 			mwv.togl(mx);
 			glUniformMatrix4fv(shader::umxwv,1,false,mx);
 			const bvol bv(0,0);
-			wd.grd.culldraw(bv);//? grid
+//			wd.culldraw(bv);
+			wd.grd.culldraw(bv);
 		}
 	//	void drawframe(){
 	//		const float freq=drawtmr.dt();
@@ -1700,6 +1715,9 @@ namespace dbox{
 
 
 using namespace dbox;
+namespace app{
+
+}
 void GLFWCALL WindowResize(const int width,const int height){
 	cout<<"window resize "<<width<<" x "<<height<<endl;
 }
@@ -1741,20 +1759,25 @@ int main(){
 //	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
 //	glfwFreeImage(&img);
 
-	glob&g=*new glob(wd,pt(),pt(),.2f,1,0);
-	g.setvbo(vb);
-	g.dpos(pt(0,0,0),pt(0,0,10));
+//	glob&g=*new glob(wd,pt(),pt(),.2f,1,0);
+//	g.setvbo(vb);
+//	g.dpos(pt(0,0,0),pt(0,0,10));
+//
+//	glob*gg=new glob(g,pt(1,0,0),pt(),1,1,0);
+//	gg->setvbo(vb);
+//	gg->pos(pt(1,0,0),pt());
+//	gg->dpos(pt(0,0,0),pt(0,0,10));
+//
+//	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
+//	gg2->setvbo(vb);
+//
+//	glob*gg3=new glob(g,pt(-2,0,0),pt(),1,1,0);
+//	gg3->setvbo(vb);
 
-	glob*gg=new glob(g,pt(1,0,0),pt(),1,1,0);
-	gg->setvbo(vb);
-	gg->pos(pt(1,0,0),pt());
-	gg->dpos(pt(0,0,0),pt(0,0,10));
-
-	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
-	gg2->setvbo(vb);
-
-	glob*gg3=new glob(g,pt(-2,0,0),pt(),1,1,0);
-	gg3->setvbo(vb);
+	new glob(wd,pt(0,0,0),pt(),.01f,1,0,vb);
+	for(int i=0;i<1000;i++){
+		new glob(wd,pt(rnd(-1,1),rnd(-1,1),0),pt(),.01f,1,0,vb);
+	}
 
 	windo&win=*new windo();
 	win.pos(pt(0,0,1),pt());
@@ -1765,21 +1788,24 @@ int main(){
 	long long frm=0;
 	tmr t,t1,t2;
 //	printf(": %5lu : %5f : %5f : %5d : %5d :\n",frm,t.dt(),dt(),metrics::globs,metrics::globsrend);
-	printf(": %5s : %8s : %8s : %5s : %5s : %5s :\n","frame","dt","dt","globs","grend","mmul");
+	printf(": %5s : %8s : %8s :  %8s :  %8s :  %8s :  %8s :  %8s : %5s : %5s : %5s : %5s : %5s : %5s : %5s :\n","frame","dt","dt","draw","tick","swpbuf","grdput","coldet","globs","grend","mmul","grds","grdcl","cdet","cols");
 
 //	cout<<"frame"<<" "<<"dt      "<<" "<<"dt     "<<" "<<"globs"<<" "<<"globsrend"<<"\n";
 	while(glfwGetWindowParam(GLFW_OPENED)){
 		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
 		frm++;
 		clk::tk++;
+		tmr t3;
 		win.drawframe();
+		const float drawframedt=t3.dt();
 		clk::dt=t2.dt();
 		wd.dotck();
-		win.handlekeys();
-		printf(": %5lld : %8f : %8f : %5d : %5d : %5d :\r",frm,t.dt(),dt(),metrics::globs,metrics::globsrend,metrics::mmmul);
-//		cout<<frm<<" "<<t.dt()<<" "<<dt()<<" "<<metrics::globs<<" "<<metrics::globsrend<<"\r";
+		const float tickdt=t2.dt();
+//		win.handlekeys();
 		glfwSwapBuffers();
-		metrics::globsrend=metrics::mmmul=0;
+		const float swapbufsdt=t2.dt();
+		printf(": %5lld : %8f : %8f :  %8f :  %8f :  %8f :  %8f :  %8f : %5d : %5d : %5d : %5d : %5d : %5d : %5d :\r",frm,t.dt(),dt(),drawframedt,tickdt,swapbufsdt,metrics::dtgrdput,metrics::dtcoldetgrd,metrics::globs,metrics::globsrend,metrics::mmmul,metrics::ngrids,metrics::gridsculled,metrics::coldetsph,metrics::collisions);
+		metrics::globsrend=metrics::mmmul=metrics::gridsculled=metrics::coldetsph=metrics::collisions=0;
 	}
 	cout<<endl<<frm/t1.dt()<<endl;
 	return 0;
