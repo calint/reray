@@ -45,7 +45,10 @@ namespace app{
 		app::vbodots::inst.glload();
 
 		app::objdots*o=new app::objdots();
-		o->dpos(pt(0,0,0),pt(0,0,10));
+		o->dpos(pt(0,0,0),pt(0,0,90));
+		o->setscl(pt(.5f,.5f,.5f));
+//		o=new app::objdots();
+//		o->dpos(pt(0,0,0),pt(0,0,20));
 //
 //		const int n=128;
 //		for(int i=0;i<n;i++){
