@@ -1751,7 +1751,9 @@ int main(){
 
 	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
 	gg2->setvbo(vb);
-//	gg2->dpos(pt(0,0,0),pt(0,0,-10));
+
+	glob*gg3=new glob(g,pt(-2,0,0),pt(),1,1,0);
+	gg3->setvbo(vb);
 
 	windo&win=*new windo();
 	win.pos(pt(0,0,1),pt());
