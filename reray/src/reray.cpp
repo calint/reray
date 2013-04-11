@@ -1735,7 +1735,13 @@ int main(){
 	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 	if(!glfwOpenWindow(512,512,8,8,8,8,32,0,GLFW_WINDOW))return -1;
+	cout<<"reray"<<endl;
 	cout<<"   opengl: "<<glGetString(GL_VERSION)<<endl;
+//	printf("sizeofs\n");
+	printf(": %8s : %-4lu :\n","pt",sizeof(pt));
+	printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
+	printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
+	printf(": %8s : %-4lu :\n","glob",sizeof(glob));
 	shader::init();
 	glfwSwapInterval(0);
 	glfwEnable(GLFW_STICKY_KEYS);
@@ -1747,11 +1753,6 @@ int main(){
 	vbo vb;
 	vb.glload();
 
-	printf("sizeofs\n");
-	printf(": %8s : %-4lu :\n","pt",sizeof(pt));
-	printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
-	printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
-	printf(": %8s : %-4lu :\n","glob",sizeof(glob));
 
 //	GLFWimage img;
 //	const char*pth="texture1.tga";
