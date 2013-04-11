@@ -153,7 +153,6 @@ namespace dbox{
 			if(glGetError())throw signl(0,"shader::init");
 		}
 	}
-
 	namespace net{
 		const int nplayers=2;
 		const int nkeys=32;
@@ -249,6 +248,39 @@ namespace dbox{
 		//		if(sockfd&&close(sockfd)){flf();l(strerror(errno))<<endl;}
 		//		if(ai)freeaddrinfo(ai);
 		//	}
+	}
+
+	class keyb{
+	public:
+		virtual~keyb(){};//?
+		virtual void onkeyb(const char c=0,const bool pressed=false,const int x=0,const int y=0)=0;
+	};
+	static keyb*kb;
+
+	static void GLFWCALL Keyboard(const int key,const int pressed){
+		cout<<"keyboard key "<<key<<"   "<<pressed<<endl;
+		if(kb)
+			kb->onkeyb((char)key,pressed,0,0);
+	}
+	static void GLFWCALL WindowResize(const int width,const int height){
+		cout<<"window resize "<<width<<" x "<<height<<endl;
+	}
+	void init(){
+		if(!glfwInit())throw signl(1,"could not init glsig");
+		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
+		glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR,2);
+		glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
+		glfwOpenWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+		if(!glfwOpenWindow(512,512,8,8,8,8,32,0,GLFW_WINDOW))return;
+		glfwSwapInterval(0);
+		glfwEnable(GLFW_STICKY_KEYS);
+		glfwSetWindowSizeCallback(WindowResize);
+		glfwSetKeyCallback(Keyboard);
+		cout<<"reray"<<endl;
+		cout<<"   opengl: "<<glGetString(GL_VERSION)<<endl;
+	//	printf("sizeofs\n");
+		shader::init();
+		if(glGetError()!=GL_NO_ERROR)throw signl(1,"opengl is in error state");
 	}
 
 	class pt{
@@ -1083,11 +1115,6 @@ namespace dbox{
 		GLint id,wi,hi;
 	};
 
-	class keyb{
-	public:
-		virtual~keyb(){};//?
-		virtual void onkeyb(const char c=0,const bool pressed=false,const int x=0,const int y=0)=0;
-	};
 
 	class wold:public glob{
 //		static wold wd;
@@ -1614,6 +1641,7 @@ namespace dbox{
 	//		}
 		}
 		void fire(){
+			nd.set(getmxv().zaxis().neg().scale(dt()));
 	////		firereload+=dt(60);if(firereload>1)firereload=1;
 	////		if(firereload<1)return;
 	////		firereload-=1;
@@ -1715,99 +1743,69 @@ namespace dbox{
 
 
 using namespace dbox;
-namespace app{
+namespace dboxapp{
+	windo*win;
+	void run(){
+		printf(": %8s : %-4lu :\n","pt",sizeof(pt));
+		printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
+		printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
+		printf(": %8s : %-4lu :\n","glob",sizeof(glob));
+		//init vbos
+		vbo vb;
+		vb.glload();
 
-}
-void GLFWCALL WindowResize(const int width,const int height){
-	cout<<"window resize "<<width<<" x "<<height<<endl;
-}
-static keyb*kb;
-void GLFWCALL Keyboard(const int key,const int pressed){
-	cout<<"keyboard key "<<key<<"   "<<pressed<<endl;
-	if(kb)
-		kb->onkeyb((char)key,pressed,0,0);
+	//	glob&g=*new glob(wd,pt(),pt(),.2f,1,0);
+	//	g.setvbo(vb);
+	//	g.dpos(pt(0,0,0),pt(0,0,10));
+	//
+	//	glob*gg=new glob(g,pt(1,0,0),pt(),1,1,0);
+	//	gg->setvbo(vb);
+	//	gg->pos(pt(1,0,0),pt());
+	//	gg->dpos(pt(0,0,0),pt(0,0,10));
+	//
+	//	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
+	//	gg2->setvbo(vb);
+	//
+	//	glob*gg3=new glob(g,pt(-2,0,0),pt(),1,1,0);
+	//	gg3->setvbo(vb);
+
+		new glob(wd,pt(0,0,0),pt(),.01f,1,0,vb);
+		for(int i=0;i<1000;i++){
+			new glob(wd,pt(rnd(-1,1),rnd(-1,1),0),pt(),.01f,1,0,vb);
+		}
+
+		dboxapp::win=new windo();
+		dboxapp::win->pos(pt(0,0,1),pt());
+		dboxapp::win->dpos(pt(0,0,-.1f),pt());
+		kb=dboxapp::win;
+
+		long long frm=0;
+		tmr t,t1,t2;
+	//	printf(": %5lu : %5f : %5f : %5d : %5d :\n",frm,t.dt(),dt(),metrics::globs,metrics::globsrend);
+		printf(": %5s : %8s : %8s :  %8s :  %8s :  %8s :  %8s :  %8s : %5s : %5s : %5s : %5s : %5s : %5s : %5s :\n","frame","dt","dt","draw","tick","swpbuf","grdput","coldet","globs","grend","mmul","grds","grdcl","cdet","cols");
+	//	cout<<"frame"<<" "<<"dt      "<<" "<<"dt     "<<" "<<"globs"<<" "<<"globsrend"<<"\n";
+		while(glfwGetWindowParam(GLFW_OPENED)){
+			if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
+			frm++;
+			clk::tk++;
+			tmr t3;
+			win->drawframe();
+			const float drawframedt=t3.dt();
+			clk::dt=t2.dt();
+			wd.dotck();
+			dboxapp::win->handlekeys();
+			const float tickdt=t2.dt();
+			glfwSwapBuffers();
+			const float swapbufsdt=t2.dt();
+			printf(": %5lld : %8f : %8f :  %8f :  %8f :  %8f :  %8f :  %8f : %5d : %5d : %5d : %5d : %5d : %5d : %5d :\r",frm,t.dt(),dt(),drawframedt,tickdt,swapbufsdt,metrics::dtgrdput,metrics::dtcoldetgrd,metrics::globs,metrics::globsrend,metrics::mmmul,metrics::ngrids,metrics::gridsculled,metrics::coldetsph,metrics::collisions);
+			metrics::globsrend=metrics::mmmul=metrics::gridsculled=metrics::coldetsph=metrics::collisions=0;
+		}
+		cout<<endl<<frm/t1.dt()<<endl;
+	}
 }
 
 int main(){
-	if(!glfwInit())return -1;
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR,3);
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR,2);
-	glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT,GL_TRUE);
-	glfwOpenWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
-	if(!glfwOpenWindow(512,512,8,8,8,8,32,0,GLFW_WINDOW))return -1;
-	cout<<"reray"<<endl;
-	cout<<"   opengl: "<<glGetString(GL_VERSION)<<endl;
-//	printf("sizeofs\n");
-	printf(": %8s : %-4lu :\n","pt",sizeof(pt));
-	printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
-	printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
-	printf(": %8s : %-4lu :\n","glob",sizeof(glob));
-	shader::init();
-	glfwSwapInterval(0);
-	glfwEnable(GLFW_STICKY_KEYS);
-	glfwSetWindowSizeCallback(WindowResize);
-	glfwSetKeyCallback(Keyboard);
-	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after init";return -1;}
-
-	//init vbos
-	vbo vb;
-	vb.glload();
-
-
-//	GLFWimage img;
-//	const char*pth="texture1.tga";
-//	const int rs=glfwReadImage(pth,&img,0);
-//	cout<<"read image "<<rs<<"  "<<img.Width<<" x "<<img.Height<<endl;
-//	glfwFreeImage(&img);
-
-//	glob&g=*new glob(wd,pt(),pt(),.2f,1,0);
-//	g.setvbo(vb);
-//	g.dpos(pt(0,0,0),pt(0,0,10));
-//
-//	glob*gg=new glob(g,pt(1,0,0),pt(),1,1,0);
-//	gg->setvbo(vb);
-//	gg->pos(pt(1,0,0),pt());
-//	gg->dpos(pt(0,0,0),pt(0,0,10));
-//
-//	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
-//	gg2->setvbo(vb);
-//
-//	glob*gg3=new glob(g,pt(-2,0,0),pt(),1,1,0);
-//	gg3->setvbo(vb);
-
-	new glob(wd,pt(0,0,0),pt(),.01f,1,0,vb);
-	for(int i=0;i<1000;i++){
-		new glob(wd,pt(rnd(-1,1),rnd(-1,1),0),pt(),.01f,1,0,vb);
-	}
-
-	windo&win=*new windo();
-	win.pos(pt(0,0,1),pt());
-	win.dpos(pt(0,0,-.1f),pt());
-	kb=&win;
-
-	if(glGetError()!=GL_NO_ERROR){cout<<"opengl in error state after loading vbos";return -1;}
-	long long frm=0;
-	tmr t,t1,t2;
-//	printf(": %5lu : %5f : %5f : %5d : %5d :\n",frm,t.dt(),dt(),metrics::globs,metrics::globsrend);
-	printf(": %5s : %8s : %8s :  %8s :  %8s :  %8s :  %8s :  %8s : %5s : %5s : %5s : %5s : %5s : %5s : %5s :\n","frame","dt","dt","draw","tick","swpbuf","grdput","coldet","globs","grend","mmul","grds","grdcl","cdet","cols");
-
-//	cout<<"frame"<<" "<<"dt      "<<" "<<"dt     "<<" "<<"globs"<<" "<<"globsrend"<<"\n";
-	while(glfwGetWindowParam(GLFW_OPENED)){
-		if(glGetError()!=GL_NO_ERROR)throw signl(0,"opengl in error");
-		frm++;
-		clk::tk++;
-		tmr t3;
-		win.drawframe();
-		const float drawframedt=t3.dt();
-		clk::dt=t2.dt();
-		wd.dotck();
-		const float tickdt=t2.dt();
-//		win.handlekeys();
-		glfwSwapBuffers();
-		const float swapbufsdt=t2.dt();
-		printf(": %5lld : %8f : %8f :  %8f :  %8f :  %8f :  %8f :  %8f : %5d : %5d : %5d : %5d : %5d : %5d : %5d :\r",frm,t.dt(),dt(),drawframedt,tickdt,swapbufsdt,metrics::dtgrdput,metrics::dtcoldetgrd,metrics::globs,metrics::globsrend,metrics::mmmul,metrics::ngrids,metrics::gridsculled,metrics::coldetsph,metrics::collisions);
-		metrics::globsrend=metrics::mmmul=metrics::gridsculled=metrics::coldetsph=metrics::collisions=0;
-	}
-	cout<<endl<<frm/t1.dt()<<endl;
+	dbox::init();
+	dboxapp::run();
 	return 0;
 }
