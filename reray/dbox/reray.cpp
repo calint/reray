@@ -1,3 +1,5 @@
+#ifndef DBOX
+#define DBOX
 #include<iostream>
 #include<sstream>
 #include<cmath>//m3
@@ -1201,8 +1203,6 @@ namespace dbox{
 		}
 	};
 	static wold wd;
-	//static wold wld;
-	//static glob wld(*(glob*)0);
 	class keyb{
 	public:
 		virtual~keyb(){};//?
@@ -1705,17 +1705,17 @@ namespace dbox{
 	//		sts.str("");
 		}
 	};
-	windo*win;
+	static windo*wn;
 
 	static void GLFWCALL Keyboard(const int key,const int pressed){
 //		cout<<"keyboard key "<<key<<"   "<<pressed<<endl;
-		if(win)
-			win->onkeyb((char)key,pressed,0,0);
+		if(wn)
+			wn->onkeyb((char)key,pressed,0,0);
 	}
 	static void GLFWCALL WindowResize(const int width,const int height){
 //		cout<<"window resize "<<width<<" x "<<height<<endl;
-		if(win)
-			win->resize(width,height);
+		if(wn)
+			wn->resize(width,height);
 	}
 	void init(){
 		if(!glfwInit())throw signl(1,"could not init glsig");
@@ -1733,6 +1733,11 @@ namespace dbox{
 	//	printf("sizeofs\n");
 		shader::init();
 		if(glGetError()!=GL_NO_ERROR)throw signl(1,"opengl is in error state");
+		printf(": %8s : %-4lu :\n","pt",sizeof(pt));
+		printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
+		printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
+		printf(": %8s : %-4lu :\n","glob",sizeof(glob));
+
 	}
 
 	void run(){
@@ -1746,13 +1751,16 @@ namespace dbox{
 			frm++;
 			clk::tk++;
 			tmr t3;
-			win->drawframe();
+			if(wn)
+				wn->drawframe();
 			const float drawframedt=t3.dt();
 			clk::dt=t2.dt();
 			wd.dotck();
-			dbox::win->handlekeys();
+			if(wn)
+				wn->handlekeys();
 			const float tickdt=t2.dt();
-			glfwSwapBuffers();
+			if(wn)
+				glfwSwapBuffers();
 			const float swapbufsdt=t2.dt();
 			printf(": %5lld : %8f : %8f :  %8f :  %8f :  %8f :  %8f :  %8f : %5d : %5d : %5d : %5d : %5d : %5d : %5d :\r",frm,t.dt(),dt(),drawframedt,tickdt,swapbufsdt,metrics::dtgrdput,metrics::dtcoldetgrd,metrics::globs,metrics::globsrend,metrics::mmmul,metrics::ngrids,metrics::gridsculled,metrics::coldetsph,metrics::collisions);
 			metrics::globsrend=metrics::mmmul=metrics::gridsculled=metrics::coldetsph=metrics::collisions=0;
@@ -1774,43 +1782,4 @@ namespace dbox{
 //#include<png.h>
 
 }
-
-
-using namespace dbox;
-int main(){
-	dbox::init();
-	printf(": %8s : %-4lu :\n","pt",sizeof(pt));
-	printf(": %8s : %-4lu :\n","mtx",sizeof(mtx));
-	printf(": %8s : %-4lu :\n","bvol",sizeof(bvol));
-	printf(": %8s : %-4lu :\n","glob",sizeof(glob));
-	//init vbos
-	vbo vb;
-	vb.glload();
-
-	new glob(wd,pt(0,0,0),pt(),.01f,1,0,vb);
-	for(int i=0;i<1000;i++){
-		new glob(wd,pt(rnd(-1,1),rnd(-1,1),0),pt(),.01f,1,0,vb);
-	}
-
-	win=new windo();
-	win->pos(pt(0,0,1),pt());
-	win->dpos(pt(0,0,-.1f),pt());
-
-	dbox::run();
-	return 0;
-}
-
-//	glob&g=*new glob(wd,pt(),pt(),.2f,1,0);
-//	g.setvbo(vb);
-//	g.dpos(pt(0,0,0),pt(0,0,10));
-//
-//	glob*gg=new glob(g,pt(1,0,0),pt(),1,1,0);
-//	gg->setvbo(vb);
-//	gg->pos(pt(1,0,0),pt());
-//	gg->dpos(pt(0,0,0),pt(0,0,10));
-//
-//	glob*gg2=new glob(*gg,pt(2,0,0),pt(),1,1,0);
-//	gg2->setvbo(vb);
-//
-//	glob*gg3=new glob(g,pt(-2,0,0),pt(),1,1,0);
-//	gg3->setvbo(vb);
+#endif
