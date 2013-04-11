@@ -1215,7 +1215,7 @@ namespace dbox{
 	class keyb{
 	public:
 		virtual~keyb(){};//?
-		virtual void onkeyb(const char c=0,const bool pressed=false,const int x=0,const int y=0)=0;
+		virtual void onkeyb(const int c=0,const bool pressed=false,const int x=0,const int y=0)=0;
 	};
 
 	class vehicle:public glob,public keyb{
@@ -1294,7 +1294,7 @@ namespace dbox{
 			if(hdlkeytg('c')){agl().transl(-7,0,0);}
 			if(hdlkeytg('z')){agl().setx(0);}
 		}
-		void onkeyb(const char c,const bool pressed,const int x,const int y){
+		void onkeyb(const int c,const bool pressed,const int x,const int y){
 			if(pressed)
 				keydn(c,x,y);
 			else keyup(c,x,y);
@@ -1335,7 +1335,7 @@ namespace dbox{
 			return true;
 		}
 	private:
-		void keydn(const char key,const int x=0,const int y=0){
+		void keydn(const int key,const int x=0,const int y=0){
 			const int i=keyix(key);
 			if(!i)return;
 			const int s=net::keys[player][i];
@@ -1346,7 +1346,7 @@ namespace dbox{
 //			cout<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 	//		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 		}
-		void keyup(const char key,const int x=0,const int y=0){
+		void keyup(const int key,const int x=0,const int y=0){
 			const int i=keyix(key);
 			const int s=net::keys[player][i];
 			if(s==0)return;
@@ -1358,7 +1358,7 @@ namespace dbox{
 //			cout<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 	//		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 		}
-		int keyix(const char key){//? char keys[]
+		int keyix(const int key){//? char keys[]
 			switch(key){
 			case 'w':return 1;
 			case 'j':return 2;
@@ -1716,12 +1716,12 @@ namespace dbox{
 	};
 	static windo*wn;
 
-	static void GLFWCALL Keyboard(const int key,const int pressed){
+	static void GLFWCALL onkeyb(const int key,const int pressed){
 //		cout<<"keyboard key "<<key<<"   "<<pressed<<endl;
 		if(wn)
-			wn->onkeyb((char)key,pressed,0,0);
+			wn->onkeyb(key,pressed,0,0);
 	}
-	static void GLFWCALL WindowResize(const int width,const int height){
+	static void GLFWCALL onresize(const int width,const int height){
 //		cout<<"window resize "<<width<<" x "<<height<<endl;
 		if(wn)
 			wn->resize(width,height);
@@ -1735,8 +1735,8 @@ namespace dbox{
 		if(!glfwOpenWindow(512,512,8,8,8,8,32,0,GLFW_WINDOW))return;
 		glfwSwapInterval(0);
 		glfwEnable(GLFW_STICKY_KEYS);
-		glfwSetWindowSizeCallback(WindowResize);
-		glfwSetKeyCallback(Keyboard);
+		glfwSetWindowSizeCallback(onresize);
+		glfwSetKeyCallback(onkeyb);
 		cout<<"reray"<<endl;
 		cout<<"   opengl: "<<glGetString(GL_VERSION)<<endl;
 	//	printf("sizeofs\n");
