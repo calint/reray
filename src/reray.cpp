@@ -122,7 +122,7 @@ namespace dbox{
 	//		const GLchar*frgshdrsrc[]={"uniform sampler2D utex;uniform sampler2D ushad;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?-.2:0.;gl_FragColor=la*vec4(1,1,1,1)+tex+gl_Color;}"};
 	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);gl_FragColor=la*(tex+ln+gl_Color);}"};
 	//		const GLchar*frgshdrsrc[]={"uniform sampler2D ushad;uniform sampler2D utex;varying vec3 vnml;void main(){vec4 tex;tex=texture2D(utex,gl_TexCoord[1].st);vec4 shad;shad=texture2DProj(ushad,gl_TexCoord[2]);float la=shad.z<gl_TexCoord[2].z/gl_TexCoord[2].w?.5:1.;vec3 lht=vec3(1,0,0);float ln=dot(normalize(vnml),lht);float wa=gl_FragCoord.w;gl_FragColor=la*(ln*.2+wa*.5+tex+gl_Color);}"};
-			const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba;}"};
+			const GLchar*frgshdrsrc[]={"#version 150 core\nuniform sampler2D utx;in vec4 rgba;in vec2 txcoord;out vec4 out_Color;void main(){out_Color=rgba*(1-gl_FragCoord.z);}"};
 			const GLint frgshdrsrclen[]={GLint(strlen(frgshdrsrc[0]))};
 			glShaderSource(frgshdr,1,frgshdrsrc,frgshdrsrclen);
 			glCompileShader(frgshdr);
@@ -692,6 +692,7 @@ namespace dbox{
 		inline const mtx&getmxmw(){refreshmxmw();return mxmw;}
 		inline glob&dpos(const pt&dpdt,const pt&dadt){nd.set(dpdt);da.set(dadt);return*this;}
 		inline const pt&getscl(){return scl;}
+		inline glob&setscl(const pt&s){scl.set(s);return*this;}
 
 		glob(glob&g,const pt&p=pt(),const pt&a=pt(),const float r=1,const float density_gcm3=1,const float bounciness=.5f):
 			pt(p),id(metrics::globs++),g(g),a(a),bits(1),ptmxupdtk(-1),mxmwtk(0),rmed(false),
