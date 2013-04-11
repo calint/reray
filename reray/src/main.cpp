@@ -1,6 +1,5 @@
 #include "../dbox/dbox.cpp"
 using namespace dbox;
-
 namespace app{
 	class vbodots:public vbo{
 		inline int elemtype()const{return 5;}
@@ -35,27 +34,30 @@ namespace app{
 //			issolid();
 		}
 	};
-}
-int main(int argc,char**argv){
-	while(argc--)puts(*argv++);
-	init();
 
-	vbo vb;
-	vb.glload();
+	void run(int argc,char**argv){
+		while(argc--)puts(*argv++);
 
-	app::vbodots::inst.glload();
+		dbox::init();
 
-	new app::objdots();
+		vbo vb;
+		vb.glload();
+		app::vbodots::inst.glload();
 
-	const int n=128;
-	for(int i=0;i<n;i++){
-		new glob(wd,pt(rnd(-1,1),rnd(-1,1),0),pt(),.01f,1,0,vb);
+		app::objdots*o=new app::objdots();
+		o->dpos(pt(0,0,0),pt(0,0,10));
+//
+//		const int n=128;
+//		for(int i=0;i<n;i++){
+//			new glob(wd,pt(rnd(-1,1),rnd(-1,1),0),pt(),.01f,1,0,vb);
+//		}
+
+		wn=new windo();
+		wn->pos(pt(0,0,1),pt());
+		wn->dpos(pt(0,0,-.1f),pt());
+
+		dbox::run();
 	}
-
-	wn=new windo();
-	wn->pos(pt(0,0,1),pt());
-	wn->dpos(pt(0,0,-.1f),pt());
-
-	run();
-	return 0;
 }
+//////////////////////////////////////////////////////////////////////////
+int main(int argc,char**argv){app::run(argc,argv);return 0;}
