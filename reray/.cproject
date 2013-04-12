@@ -23,9 +23,9 @@
 							<builder buildPath="${workspace_loc:/reray}/Debug" id="cdt.managedbuild.target.gnu.builder.macosx.exe.debug.92279886" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.macosx.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.696447329" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug"/>
 							<tool command="clang++" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.1763684549" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
-								<option id="macosx.cpp.link.option.paths.255313311" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths"/>
-								<option id="macosx.cpp.link.option.libs.1781328546" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs" valueType="libs"/>
-								<option id="macosx.cpp.link.option.flags.1970567870" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework opengl -framework glut -framework cocoa -framework iokit ../glfw/lib/osx/libglfw.a" valueType="string"/>
+								<option id="macosx.cpp.link.option.paths.255313311" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths"/>
+								<option id="macosx.cpp.link.option.libs.1781328546" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs"/>
+								<option id="macosx.cpp.link.option.flags.1970567870" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework opengl -framework cocoa -framework iokit ../glfw/lib/osx/libglfw.a" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.macosx.cpp.linker.input.1673908090" superClass="cdt.managedbuild.tool.macosx.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
